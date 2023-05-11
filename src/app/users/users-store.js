@@ -21,19 +21,7 @@ class UserStore {
       .first();
   }
 
-  async registerUser(user, hash) {
-    return await this.db('users')
-      .insert({
-        USERNAME: user.username,
-        PASSWORD: hash,
-        FIRSTNAME: user.firstname,
-        LASTNAME: user.lastname,
-        EMAIL: user.email,
-        ROLE: user.role
-      });
-  }
-
-  async updateUser(uuid, user, hash) {
+  async updateUser(uuid, user) {
     return await this.db('users')
       .where('UUID', uuid)
       .update({
@@ -41,11 +29,9 @@ class UserStore {
         PASSWORD: hash,
         FIRSTNAME: user.firstname,
         LASTNAME: user.lastname,
-        EMAIL:user.email,
         ROLE: user.role
       });
   }
-
 
   async deleteUser(uuid) {
     return await this.db('users')

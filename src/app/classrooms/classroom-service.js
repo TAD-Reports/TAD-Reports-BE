@@ -1,7 +1,5 @@
 const ClassroomStore = require('./classroom-store');
 const LogsStore = require('../logs/logs-store');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 
 class ClassroomService {
   constructor(classroomStore) {

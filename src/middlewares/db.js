@@ -6,7 +6,7 @@ const db = (req, res, next) => {
       port : 3306,
       user : 'root',
       password : '',
-      database : 'konek'
+      database : 'tad'
     }
   });
   req.db = knex;

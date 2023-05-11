@@ -1,62 +1,9 @@
 const UserStore = require('./users-store');
 const LogsStore = require('../logs/logs-store');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-
 
 class UserService {
   constructor(userStore) {
   }
-
-
-// Register new user  
-  async addUser(req, res) {
-    const userStore = new UserStore(req.db);
-    const logsStore = new LogsStore(req.db);
-    const user = req.body;
-    // Hash the password
-    const hash = await bcrypt.hash(user.password, 10);
-    // Validate input
-    if (!user.username || !user.password) {
-      return res.status(400).send({ 
-        message: 'Username and password are required' 
-      });
-    }
-    // Check if the user already exists
-    const hasUser = await userStore.getUsername(user.username);
-    if (hasUser) {
-      return res.status(400).send({ 
-        message: 'Username already exists' 
-      });
-    }
-    try {
-      // Insert the new user into the database
-      const result = await userStore.registerUser(user, hash)
-      const userId = result[0];
-      // Create logs
-      await logsStore.registerLogs(userId);
-      // Create a JWT token (optional if directly logged in after registration)
-      const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-        expiresIn: 86400 // expires in 24 hours
-      });
-      return res.status(201).send({
-        success: true,
-        message: 'Registration successful',
-        data: {
-          uuid: userId,
-          ...user
-        },
-        token: token
-      });
-    } catch (error) {
-      return res.status(500).send({
-        success: false, 
-        message: 'Error registering user',
-        error: error
-      });
-    }
-  }
-
 
 // Login User
   async loginUser(req, res) {
@@ -75,10 +22,9 @@ class UserService {
         message: 'Username not found'
       });
     }
-    // Validate user's hashed password
+    // Validate password
     try {
-      const validPassword = await bcrypt.compare(password, user.password);
-      if (!validPassword) {
+      if (password !== user.password) {
         return res.status(401).send({
           valid: false,
           message: 'Invalid login credentials'
@@ -93,17 +39,12 @@ class UserService {
     }
     // Create logs
     await logsStore.loginLogs(user.uuid);
-    // Create a JWT token
-    const token = jwt.sign({ id: user.uuid }, process.env.JWT_SECRET, {
-      expiresIn: 86400 // expires in 24 hours
-    });
     return res.status(200).send({
       valid: true,
       message: 'Login successful',
-      data: user,
-      token: token
+      data: user
     });
-    }
+  }
 
 
 // Get user by ID
@@ -149,7 +90,6 @@ async getUser(req, res) {
     const logsStore = new LogsStore(req.db);
     const uuid = req.params.uuid;
     const user = req.body;
-    const hash = await bcrypt.hash(user.password, 10);
     const id = await userStore.getUserByUUID(uuid);
     if (!id){
       return res.status(404).send({
@@ -158,7 +98,7 @@ async getUser(req, res) {
       });
     }
     try{
-      const result = userStore.updateUser(uuid, user, hash);
+      const result = userStore.updateUser(uuid, user);
       if (result === 0) {
         return res.status(404).send({
           success: false,

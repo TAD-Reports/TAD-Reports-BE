@@ -36,7 +36,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('variety').notNullable();
         table.integer('moa_period').notNullable();
         table.integer('status').notNullable().defaultTo(1);
-        table.timestamp('import_date').notNullable().defaultTo(knex.fn.now());
+        table.timestamps(true, true);
         table.integer('import_by')
         .unsigned()
         .notNullable()
@@ -44,7 +44,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         .inTable('users')
         .onDelete('CASCADE');
 
-        }).createTable('nursery', (table) => {
+        }).createTable('distribution', (table) => {
         table.increments('uuid').primary();
         table.date('report_date').notNullable();
         table.string('type').notNullable();
@@ -62,7 +62,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('gender').notNullable();
         table.string('category').notNullable();
         table.integer('status').notNullable().defaultTo(1);
-        table.timestamp('import_date').notNullable().defaultTo(knex.fn.now());
+        table.timestamps(true, true);
         table.integer('import_by')
         .unsigned()
         .notNullable()

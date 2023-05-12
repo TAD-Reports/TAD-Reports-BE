@@ -26,7 +26,7 @@ class UserStore {
       .where('UUID', uuid)
       .update({
         USERNAME: user.username,
-        PASSWORD: hash,
+        PASSWORD: user.pasword,
         FIRSTNAME: user.firstname,
         LASTNAME: user.lastname,
         ROLE: user.role

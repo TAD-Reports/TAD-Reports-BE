@@ -35,6 +35,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.double('area_in_has').notNullable();
         table.string('variety').notNullable();
         table.integer('moa_period').notNullable();
+        table.string('remarks').nullable();
         table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
         table.integer('import_by')
@@ -61,6 +62,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('beneficiary_address').notNullable();
         table.string('gender').notNullable();
         table.string('category').notNullable();
+        table.string('remarks').nullable();
         table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
         table.integer('import_by')
@@ -108,19 +110,23 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         .onDelete('CASCADE');
       });
     } catch (error) {
-      return res.status(500).send({ 
-        error: 'Error creating user tables' 
-      });
+      console.error('Error creating user tables:', error);
+      throw new Error('Error creating user tables');
     }
-  }
+  };
 
   const main = async () => {
-    if (!await hasTable()) {
-      await createTable();
+    try {
+      if (!await hasTable()) {
+        await createTable();
+      }
+      req.userDao = userDao;
+      next();
+    } catch (error) {
+      console.error('Error creating user tables:', error);
+      return res.status(500).send({ error: 'Error creating user tables' });
     }
-    req.userDao = userDao;
-    next();
-  }
+  };
 
   main();
 }));

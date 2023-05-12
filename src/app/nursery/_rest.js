@@ -10,15 +10,18 @@ const nurseryService = new NurseryService();
 const router = express.Router();
 
 // Get nursery
-router.get('/nursery/:uuid', db, asyncHandler(nurseryService.getNursery));
-
-// Get all nursery
-router.get('/nurseries', db, asyncHandler(nurseryService.getAllNursery));
+router.get('/nursery/get/:uuid', db, asyncHandler(nurseryService.getNursery));
 
 // Add new nursery / import
 router.post('/nursery', db, uploadFile, asyncHandler(nurseryService.addNursery));
 
 // Delete nursery row
-router.delete('/nursery/:uuid', db, asyncHandler(nurseryService.deleteNursery));
+router.delete('/nursery/delete/:uuid', db, asyncHandler(nurseryService.deleteNursery));
+
+//Search by key
+router.get('/nursery/search/:key', db, asyncHandler(nurseryService.search));
+
+//Get Graph Data
+router.get('/nursery/graph/:date', db, asyncHandler(nurseryService.getGraphData));
 
 module.exports = router;

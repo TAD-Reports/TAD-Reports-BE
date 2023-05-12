@@ -50,6 +50,33 @@ class NurseryStore {
       .where('UUID', uuid)
       .del();
   }
+
+  async searchByKey(key) {
+    const formattedDate = formatDate(key); // Format the date string
+    return await this.db('nursery')
+      .select()
+      .whereILike('month_report', `%${formattedDate}%`)
+      .orWhereILike('region', `%${key}%`);
+  }
+
+  async getGraphData(date) {
+    const formattedDate = formatDate(date); // Format the date string
+    return await this.db('nursery')
+      .select('funded_by')
+      .where('month_report', `${formattedDate}`)
+      .count('funded_by as count')
+      .groupBy('funded_by');
+  }
+
+}
+
+function formatDate(dateString) {
+  const [year, month, day] = dateString.split('/');
+  const formattedDate = `${year}-${month}-${day}`;
+  return formattedDate;
 }
 
 module.exports = NurseryStore;
+
+
+//SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

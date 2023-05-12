@@ -71,7 +71,6 @@ class NurseryService {
         }
       }
 
-      
       // console.log('Row:', row); // Print the row data
       console.log('Rows:', existingRows); // Print the row data
 
@@ -117,24 +116,6 @@ class NurseryService {
     });
   }
 
-// Get All Nursery
-  async getAllNursery(req, res) {
-    const nurseryStore = new NurseryStore(req.db);
-    try{
-      const nursery = await nurseryStore.getAllNursery();
-      return res.status(200).send({
-        success: true,
-        data: nursery
-      });
-    } catch (error) {
-      return res.status(500).send({
-        success: false,
-        message: 'Error fetching nursery',
-        error: error
-      });
-    }
-  }
-
   // Delete a user
   async deleteNursery(req, res) {
     const nurseryStore = new NurseryStore(req.db);
@@ -159,6 +140,45 @@ class NurseryService {
       message: 'Nursery has been deleted'
     });
   }
+
+  // Search by key
+  async search(req, res) {
+    const nurseryStore = new NurseryStore(req.db);
+    const key = req.params.key;
+    const formattedKey = key.replace(/-/g, '/').replace(/_/g, ' '); // Replace dashes with slashes
+    let nursery = await nurseryStore.searchByKey(formattedKey);
+
+    console.log(formattedKey); // Print
+
+    if (!key > 0) {
+      nursery = await nurseryStore.getAllNursery();
+    }
+
+    return res.status(200).send({
+      success: true,
+      data: nursery
+    });
+  }
+
+  // Get Graph Data
+  async getGraphData(req, res) {
+    const nurseryStore = new NurseryStore(req.db);
+    const date = req.params.date;
+    const formattedDate = date.replace(/-/g, '/');
+    const nursery = await nurseryStore.getGraphData(formattedDate);
+
+    if (!nursery) {
+      return res.status(404).send({
+        success: false,
+        message: 'Nursery Data Not Found'
+      });
+    }
+    return res.status(200).send({
+      success: true,
+      data: nursery
+    });
+  }
+
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format

@@ -7,81 +7,98 @@ class NurseryService {
   constructor(nurseryStore) {
   }
 
-// Add Nursery
-async addNursery(req, res) {
-  const nurseryStore = new NurseryStore(req.db);
-  const logsStore = new LogsStore(req.db);
-  const nursery = req.body;
+// for (let i = 1; i < jsonData.length; i++) {
+// const row = jsonData[i];  
 
-  // Check if a file was uploaded
-  if (!req.file) {
-    return res.status(400).json({ error: "No file uploaded" });
+  // Add Nursery
+  async addNursery(req, res) {
+    const nurseryStore = new NurseryStore(req.db);
+    const logsStore = new LogsStore(req.db);
+    const nursery = req.body;
+
+    // Check if a file was uploaded
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Get the uploaded file and read its contents
+    const file = req.file;
+    const fileContents = file.buffer;
+
+    // Read the Excel file
+    const workbook = XLSX.read(fileContents, { type: 'buffer' });
+
+    // Assuming the data is in the first sheet (index 0)
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+    // Convert the sheet data to JSON
+    const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+    const uniqueRows = new Map(); // Map to store unique rows with their row numbers
+    const duplicateRows = []; // Array to store duplicate rows with their row numbers
+    const existingRows = []; // Array to store existing rows with their row numbers
+
+    try {
+      // Iterate over each row in the JSON data
+      for (let i = 0; i < jsonData.length; i++) {
+        const row = jsonData[i];
+        // Add the import_by field from req.body
+        row.imported_by = nursery.imported_by;
+
+        // Convert the date format
+        if (row['Month Report'] && typeof row['Month Report'] === 'number') {
+          row['Month Report'] = convertExcelDate(row['Month Report']);
+        }
+
+        if (row['Date Established'] && typeof row['Date Established'] === 'number') {
+          row['Date Established'] = convertExcelDate(row['Date Established']);
+        }
+
+        const rowKey = JSON.stringify(row); // Convert the row object to a string for comparison
+
+        // Check if the row already exists in the uniqueRows map
+        if (uniqueRows.has(rowKey)) {
+          duplicateRows.push(i + 1); // Add the duplicate row with row numbers to the array
+        } else {
+          uniqueRows.set(rowKey, i + 1); // Add the row to the map with the current row number
+
+          // Check if the row already exists in the database
+          const existingRow = await nurseryStore.getExistingRow(row);
+
+          if (existingRow) {
+            existingRows.push({ row: existingRow, rowNumber: i + 1 }); // Add the existing row with row number to the array
+          }
+        }
+      }
+
+      
+      // console.log('Row:', row); // Print the row data
+      console.log('Rows:', existingRows); // Print the row data
+
+
+      if (duplicateRows.length > 0) {
+        return res.status(400).json({ error: "Duplicate rows found", duplicateRows });
+      }
+
+      if (existingRows.length > 0) {
+        return res.status(400).json({ error: "Existing rows found in the database", existingRows });
+      }
+
+      // If no duplicate rows or existing rows, store all the rows in the database
+      for (const row of jsonData) {
+        await nurseryStore.addNurseryRow(row);
+      }
+
+      return res.status(200).json({ 
+        success: true,
+        message: `${file.originalname} data imported successfully` 
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Failed to add data to the database" });
+    }
   }
 
-  // Get the uploaded file and read its contents
-  const file = req.file;
-  const fileContents = file.buffer;
-
-  // Read the Excel file
-  const workbook = XLSX.read(fileContents, { type: 'buffer' });
-
-  // Assuming the data is in the first sheet (index 0)
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-  // Convert the sheet data to JSON
-  const jsonData = XLSX.utils.sheet_to_json(sheet);
-
-  const uniqueRows = new Set(); // Set to store unique rows
-  const duplicateRows = []; // Array to store duplicate rows
-
-  try {
-      // for (let i = 1; i < jsonData.length; i++) {
-      // const row = jsonData[i];
-
-    // Iterate over each row in the JSON data
-    for (const row of jsonData) {
-      // Add the import_by field from req.body
-      row.imported_by = nursery.imported_by;
-
-      // Convert the date format
-      if (row['Month Report'] && typeof row['Month Report'] === 'number') {
-        row['Month Report'] = convertExcelDate(row['Month Report']);
-      }
-
-      if (row['Date Established'] && typeof row['Date Established'] === 'number') {
-        row['Date Established'] = convertExcelDate(row['Date Established']);
-      }
-
-      console.log('Row:', row); // Print the row data
-
-      const rowKey = JSON.stringify(row); // Convert the row object to a string for comparison
-
-      // Check if the row already exists in the uniqueRows set
-      if (uniqueRows.has(rowKey)) {
-        duplicateRows.push(row); // Add the duplicate row to the array
-      } else {
-        uniqueRows.add(rowKey); // Add the row to the set
-      }
-    }
-
-    if (duplicateRows.length > 0) {
-      return res.status(400).json({ error: "Duplicate rows found", duplicateRows });
-    }
-
-    // If no duplicate rows, store all the rows in the database
-    for (const row of jsonData) {
-      await nurseryStore.addNurseryRow(row);
-    }
-
-    return res.status(200).json({ 
-      success: true,
-      message: `${file.originalname} data imported successfully` 
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: "Failed to add data to the database" });
-  }
-}
 
 // Get Nursery
   async getNursery(req, res) {

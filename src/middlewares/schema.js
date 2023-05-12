@@ -23,18 +23,18 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
 
       }).createTable('nursery', (table) => {
         table.increments('uuid').primary();
-        table.date('report_date').notNullable();
-        table.string('funded_by').notNullable();
+        table.date('month_report').notNullable();
         table.string('region').notNullable();
         table.string('province').notNullable();
         table.string('district').nullable();
         table.string('municipality').notNullable();
         table.string('barangay').notNullable();
-        table.string('cooperative_name').notNullable();
-        table.date('established_date').notNullable();
-        table.double('area_in_has').notNullable();
-        table.string('variety').notNullable();
-        table.integer('moa_period').notNullable();
+        table.string('funded_by').notNullable();
+        table.string('complete_name_of_cooperator_organization').notNullable();
+        table.date('date_established').notNullable();
+        table.double('area_in_hectares_ha').notNullable();
+        table.string('variety_used').notNullable();
+        table.integer('period_of_moa').notNullable();
         table.string('remarks').nullable();
         table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
@@ -109,6 +109,16 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         .inTable('classrooms')
         .onDelete('CASCADE');
       });
+
+      await req.db('users').insert({
+        username: 'admin',
+        password: 'admin',
+        firstname: 'Ray',
+        lastname: 'Ray',
+        role: 'admin'
+      });
+
+
     } catch (error) {
       console.error('Error creating user tables:', error);
       throw new Error('Error creating user tables');

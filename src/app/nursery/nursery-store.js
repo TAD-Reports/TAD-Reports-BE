@@ -32,11 +32,24 @@ class NurseryStore {
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
+
+  async getNurseryByUUID(uuid) {
+    return await this.db('nursery')
+      .select()
+      .where('UUID', uuid)
+      .first();
+  }
+
+  async getAllNursery() {
+    return await this.db('nursery')
+      .select();
+  } 
+
+  async deleteNursery(uuid) {
+    return await this.db('nursery')
+      .where('UUID', uuid)
+      .del();
+  }
 }
 
 module.exports = NurseryStore;
-
-
-  // getNurseryByUUID
-
-  // getAllNursery

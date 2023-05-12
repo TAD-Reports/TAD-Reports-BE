@@ -134,6 +134,31 @@ class NurseryService {
       });
     }
   }
+
+  // Delete a user
+  async deleteNursery(req, res) {
+    const nurseryStore = new NurseryStore(req.db);
+    const uuid = req.params.uuid;
+    try {
+      const result = await nurseryStore.deleteNursery(uuid);
+      if (result === 0) {
+        return res.status(404).send({
+          success: false,
+          message: 'Nursery not found'
+        });
+      }
+    } catch (error) {
+      return res.status(500).send({ 
+        success: false,
+        message: 'Error deleting nursery',
+        error: error
+      });
+    }
+    return res.status(202).send({
+      success: true,
+      message: 'Nursery has been deleted'
+    });
+  }
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format

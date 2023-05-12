@@ -15,7 +15,10 @@ router.get('/nursery/:uuid', db, asyncHandler(nurseryService.getNursery));
 // Get all nursery
 router.get('/nurseries', db, asyncHandler(nurseryService.getAllNursery));
 
-// Add new nursery
+// Add new nursery / import
 router.post('/nursery', db, uploadFile, asyncHandler(nurseryService.addNursery));
+
+// Delete nursery row
+router.delete('/nursery/:uuid', db, asyncHandler(nurseryService.deleteNursery));
 
 module.exports = router;

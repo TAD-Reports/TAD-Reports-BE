@@ -7,63 +7,81 @@ class NurseryService {
   constructor(nurseryStore) {
   }
 
-  // Add Nursery
-  async addNursery(req, res) {
-    const nurseryStore = new NurseryStore(req.db);
-    const logsStore = new LogsStore(req.db);
-    const nursery = req.body;
+// Add Nursery
+async addNursery(req, res) {
+  const nurseryStore = new NurseryStore(req.db);
+  const logsStore = new LogsStore(req.db);
+  const nursery = req.body;
 
-    // Check if a file was uploaded
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
+  // Check if a file was uploaded
+  if (!req.file) {
+    return res.status(400).json({ error: "No file uploaded" });
+  }
 
-    // Get the uploaded file and read its contents
-    const file = req.file;
-    const fileContents = file.buffer;
+  // Get the uploaded file and read its contents
+  const file = req.file;
+  const fileContents = file.buffer;
 
-    // Read the Excel file
-    const workbook = XLSX.read(fileContents, { type: 'buffer' });
+  // Read the Excel file
+  const workbook = XLSX.read(fileContents, { type: 'buffer' });
 
-    // Assuming the data is in the first sheet (index 0)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  // Assuming the data is in the first sheet (index 0)
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    // Convert the sheet data to JSON
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
+  // Convert the sheet data to JSON
+  const jsonData = XLSX.utils.sheet_to_json(sheet);
 
-    try {
-      // Insert each row into the 'nursery' table
-      for (const row of jsonData) {
+  const uniqueRows = new Set(); // Set to store unique rows
+  const duplicateRows = []; // Array to store duplicate rows
 
+  try {
       // for (let i = 1; i < jsonData.length; i++) {
       // const row = jsonData[i];
 
-        // Add the import_by field from req.body
-        row.imported_by = nursery.imported_by;
+    // Iterate over each row in the JSON data
+    for (const row of jsonData) {
+      // Add the import_by field from req.body
+      row.imported_by = nursery.imported_by;
 
-        // Convert the date format
-        if (row['Month Report'] && typeof row['Month Report'] === 'number') {
-          row['Month Report'] = convertExcelDate(row['Month Report']);
-        }
-
-        if (row['Date Established'] && typeof row['Date Established'] === 'number') {
-          row['Date Established'] = convertExcelDate(row['Date Established']);
-        }
-
-        console.log('Row:', row); // Print the row data
-
-        await nurseryStore.addNurseryRow(row);
+      // Convert the date format
+      if (row['Month Report'] && typeof row['Month Report'] === 'number') {
+        row['Month Report'] = convertExcelDate(row['Month Report']);
       }
-      return res.status(200).json({ 
-        success: true,
-        message: `${file.originalname} data imported successfully` 
-      });
-    } catch (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Failed to add data to the database" });
-    }
-  }
 
+      if (row['Date Established'] && typeof row['Date Established'] === 'number') {
+        row['Date Established'] = convertExcelDate(row['Date Established']);
+      }
+
+      console.log('Row:', row); // Print the row data
+
+      const rowKey = JSON.stringify(row); // Convert the row object to a string for comparison
+
+      // Check if the row already exists in the uniqueRows set
+      if (uniqueRows.has(rowKey)) {
+        duplicateRows.push(row); // Add the duplicate row to the array
+      } else {
+        uniqueRows.add(rowKey); // Add the row to the set
+      }
+    }
+
+    if (duplicateRows.length > 0) {
+      return res.status(400).json({ error: "Duplicate rows found", duplicateRows });
+    }
+
+    // If no duplicate rows, store all the rows in the database
+    for (const row of jsonData) {
+      await nurseryStore.addNurseryRow(row);
+    }
+
+    return res.status(200).json({ 
+      success: true,
+      message: `${file.originalname} data imported successfully` 
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "Failed to add data to the database" });
+  }
+}
 
 // Get Nursery
   async getNursery(req, res) {

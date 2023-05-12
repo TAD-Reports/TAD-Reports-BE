@@ -39,7 +39,7 @@ class NurseryService {
       // const row = jsonData[i];
 
         // Add the import_by field from req.body
-        row.import_by = nursery.import_by;
+        row.imported_by = nursery.imported_by;
 
         // Convert the date format
         if (row['Month Report'] && typeof row['Month Report'] === 'number') {
@@ -54,8 +54,10 @@ class NurseryService {
 
         await nurseryStore.addNurseryRow(row);
       }
-
-      return res.json({ success: true });
+      return res.status(200).json({ 
+        success: true,
+        message: `${file.originalname} data imported successfully` 
+      });
     } catch (err) {
       console.error(err);
       return res.status(500).json({ error: "Failed to add data to the database" });

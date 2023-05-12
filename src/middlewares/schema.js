@@ -38,7 +38,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('remarks').nullable();
         table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
-        table.integer('import_by')
+        table.integer('imported_by')
         .unsigned()
         .notNullable()
         .references('uuid')
@@ -65,7 +65,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('remarks').nullable();
         table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
-        table.integer('import_by')
+        table.integer('imported_by')
         .unsigned()
         .notNullable()
         .references('uuid')

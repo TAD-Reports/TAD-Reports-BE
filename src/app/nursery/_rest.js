@@ -12,10 +12,10 @@ const router = express.Router();
 // Get nursery
 router.get('/nursery/:uuid', db, asyncHandler(nurseryService.getNursery));
 
-// Get all Classroom
+// Get all nursery
 router.get('/nurseries', db, asyncHandler(nurseryService.getAllNursery));
 
-// Add new Classroom
+// Add new nursery
 router.post('/nursery', db, uploadFile, asyncHandler(nurseryService.addNursery));
 
 module.exports = router;

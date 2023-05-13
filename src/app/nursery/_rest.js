@@ -19,9 +19,9 @@ router.post('/nursery', db, uploadFile, asyncHandler(nurseryService.addNursery))
 router.delete('/nursery/delete/:uuid', db, asyncHandler(nurseryService.deleteNursery));
 
 //Search by key
-router.get('/nursery/search/:key', db, asyncHandler(nurseryService.search));
+router.get('/nursery/search', db, asyncHandler(nurseryService.search));
 
 //Get Graph Data
-router.get('/nursery/graph/:date', db, asyncHandler(nurseryService.getGraphData));
+router.get('/nursery/graph', db, asyncHandler(nurseryService.getGraphData));
 
 module.exports = router;

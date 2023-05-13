@@ -144,15 +144,16 @@ class NurseryService {
   // Search by key
   async search(req, res) {
     const nurseryStore = new NurseryStore(req.db);
-    const key = req.params.key;
-    const formattedKey = key.replace(/-/g, '/').replace(/_/g, ' '); // Replace dashes with slashes
-    let nursery = await nurseryStore.searchByKey(formattedKey);
+    const key = req.query.key; // Get the key from query parameters
+    let nursery;
 
-    console.log(formattedKey); // Print
-
-    if (!key > 0) {
+    if (!key) {
       nursery = await nurseryStore.getAllNursery();
+    } else {
+      nursery = await nurseryStore.searchByKey(key);
     }
+
+    console.log(key); // Print
 
     return res.status(200).send({
       success: true,
@@ -163,9 +164,8 @@ class NurseryService {
   // Get Graph Data
   async getGraphData(req, res) {
     const nurseryStore = new NurseryStore(req.db);
-    const date = req.params.date;
-    const formattedDate = date.replace(/-/g, '/');
-    const nursery = await nurseryStore.getGraphData(formattedDate);
+    const date = req.query.date; // Get the key from query parameters
+    const nursery = await nurseryStore.getGraphData(date);
 
     if (!nursery) {
       return res.status(404).send({

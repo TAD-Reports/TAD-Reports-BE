@@ -59,6 +59,7 @@ class NurseryStore {
       .orWhereILike('region', `%${key}%`);
   }
 
+
   async getGraphData(date) {
     const formattedDate = formatDate(date); // Format the date string
     return await this.db('nursery')

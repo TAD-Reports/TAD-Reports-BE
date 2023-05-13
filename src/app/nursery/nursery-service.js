@@ -54,6 +54,8 @@ class NurseryService {
           row['Date Established'] = convertExcelDate(row['Date Established']);
         }
 
+
+
         const rowKey = JSON.stringify(row); // Convert the row object to a string for comparison
 
         // Check if the row already exists in the uniqueRows map
@@ -71,16 +73,12 @@ class NurseryService {
         }
       }
 
-      // console.log('Row:', row); // Print the row data
-      console.log('Rows:', existingRows); // Print the row data
-
-
       if (duplicateRows.length > 0) {
-        return res.status(400).json({ error: "Duplicate rows found", duplicateRows });
+        return res.status(400).json({ error: "Duplicate rows found in Excel", duplicateRows });
       }
 
       if (existingRows.length > 0) {
-        return res.status(400).json({ error: "Existing rows found in the database", existingRows });
+        return res.status(400).json({ error: "Existing rows found in the Database", existingRows });
       }
 
       // If no duplicate rows or existing rows, store all the rows in the database
@@ -90,7 +88,7 @@ class NurseryService {
 
       return res.status(200).json({ 
         success: true,
-        message: `${file.originalname} data imported successfully` 
+        message: `${file.originalname} data imported successfully`
       });
     } catch (err) {
       console.error(err);
@@ -98,8 +96,7 @@ class NurseryService {
     }
   }
 
-
-// Get Nursery
+  // Get Nursery
   async getNursery(req, res) {
     const nurseryStore = new NurseryStore(req.db);
     const uuid = req.params.uuid;
@@ -116,7 +113,7 @@ class NurseryService {
     });
   }
 
-  // Delete a user
+  // Delete a nursery
   async deleteNursery(req, res) {
     const nurseryStore = new NurseryStore(req.db);
     const uuid = req.params.uuid;
@@ -152,9 +149,6 @@ class NurseryService {
     } else {
       nursery = await nurseryStore.searchByKey(key);
     }
-
-    console.log(key); // Print
-
     return res.status(200).send({
       success: true,
       data: nursery
@@ -164,21 +158,31 @@ class NurseryService {
   // Get Graph Data
   async getGraphData(req, res) {
     const nurseryStore = new NurseryStore(req.db);
-    const date = req.query.date; // Get the key from query parameters
-    const nursery = await nurseryStore.getGraphData(date);
+    const regionKey = req.query.region;
+    const dateKey = req.query.date;
+    
+    try {
+      const nursery = await nurseryStore.getGraphData(regionKey, dateKey);
+    
+      if (!nursery) {
+        return res.status(404).send({
+          success: false,
+          message: 'Nursery Data Not Found'
+        });
+      }
 
-    if (!nursery) {
-      return res.status(404).send({
+      return res.status(200).send({
+        success: true,
+        data: nursery
+      });
+    } catch (error) {
+      return res.status(500).send({ 
         success: false,
-        message: 'Nursery Data Not Found'
+        message: 'Error retrieving nursery data',
+        error: error.message
       });
     }
-    return res.status(200).send({
-      success: true,
-      data: nursery
-    });
   }
-
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format
@@ -187,6 +191,5 @@ function convertExcelDate(excelDate) {
   const convertedDate = baseDate.plus({ days: excelDate - 2 });
   return convertedDate.toFormat('yyyy/MM/dd');
 }
-
 
 module.exports = NurseryService;

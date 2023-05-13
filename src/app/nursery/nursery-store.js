@@ -1,3 +1,5 @@
+const moment = require('moment-timezone');
+
 class NurseryStore {
   constructor(db) {
     this.db = db;
@@ -34,16 +36,12 @@ class NurseryStore {
   }
 
   async getNurseryByUUID(uuid) {
-    return await this.db('nursery')
+    const results = await this.db('nursery')
       .select()
-      .where('UUID', uuid)
-      .first();
+      .where('UUID', uuid);
+      const convertedResults = convertDatesToTimezone(results, ['month_report', 'date_established']);
+      return convertedResults;
   }
-
-  async getAllNursery() {
-    return await this.db('nursery')
-      .select();
-  } 
 
   async deleteNursery(uuid) {
     return await this.db('nursery')
@@ -51,31 +49,72 @@ class NurseryStore {
       .del();
   }
 
+  async getAllNursery() {
+    const results = await this.db('nursery')
+      .select()
+      .orderBy('region')
+      .orderBy('month_report');
+    const convertedResults = convertDatesToTimezone(results, ['month_report', 'date_established']);
+    return convertedResults;
+  }
+
+  //TO DO:
+  //devided search per Region
+  //make the provided date as startDate and get the endDate of the month
+
   async searchByKey(key) {
     const formattedDate = formatDate(key); // Format the date string
-    return await this.db('nursery')
+    const results = await this.db('nursery')
       .select()
-      .whereILike('month_report', `%${formattedDate}%`)
-      .orWhereILike('region', `%${key}%`);
+        .whereILike('month_report', `%${formattedDate}%`)
+        .orWhereILike('region', `%${key}%`);
+    const convertedResults = convertDatesToTimezone(results, ['month_report', 'date_established']);
+    return convertedResults;
   }
 
-
-  async getGraphData(date) {
-    const formattedDate = formatDate(date); // Format the date string
-    return await this.db('nursery')
+  async getGraphData(regionKey, dateKey) {
+    const formattedDate = formatDate(dateKey);
+    const query = this.db('nursery')
       .select('funded_by')
-      .where('month_report', `${formattedDate}`)
       .count('funded_by as count')
       .groupBy('funded_by');
-  }
 
+    if (regionKey) {
+      query.where('region', regionKey);
+    }
+
+    if (dateKey) {
+      query.where('month_report', formattedDate);
+    }
+
+    if (!regionKey && formattedDate) {
+      query.where('month_report', formattedDate);
+    }
+
+    return await query;
+  }
+}
+
+function convertDatesToTimezone(rows, dateFields) {
+  return rows.map(row => {
+    const convertedFields = {};
+    dateFields.forEach(field => {
+      const convertedDate = moment.utc(row[field]).tz('Asia/Singapore').format('YYYY-MM-DD');
+      convertedFields[field] = convertedDate;
+    });
+    return { ...row, ...convertedFields };
+  });
 }
 
 function formatDate(dateString) {
-  const [year, month, day] = dateString.split('/');
-  const formattedDate = `${year}-${month}-${day}`;
-  return formattedDate;
+  const date = moment(dateString, 'YYYY/MM/DD', true); // Use moment.js to parse the date
+  if (!date.isValid()) {
+    return (""); //DITO YUNG DEFAULT NA PREVIOUS AND CURRENT MONTH!!
+  }
+  return date.format('YYYY-MM-DD');
 }
+
+
 
 module.exports = NurseryStore;
 

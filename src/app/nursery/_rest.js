@@ -9,19 +9,19 @@ const uploadFile = require('../../middlewares/upload-file');
 const nurseryService = new NurseryService();
 const router = express.Router();
 
-// Get nursery
+//Get nursery
 router.get('/nursery/get/:uuid', db, asyncHandler(nurseryService.getNursery));
 
-// Add new nursery / import
+//Add nursery / Import
 router.post('/nursery', db, uploadFile, asyncHandler(nurseryService.addNursery));
 
-// Delete nursery row
+//Delete
 router.delete('/nursery/delete/:uuid', db, asyncHandler(nurseryService.deleteNursery));
 
-//Search by key
+//Search
 router.get('/nursery/search', db, asyncHandler(nurseryService.search));
 
-//Get Graph Data
+//Graph
 router.get('/nursery/graph', db, asyncHandler(nurseryService.getGraphData));
 
 module.exports = router;

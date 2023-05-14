@@ -59,21 +59,32 @@ class NurseryStore {
   }
 
   //TO DO:
-  //devided search per Region
-  //make the provided date as startDate and get the endDate of the month
+  //devided Region search per user
 
   async searchByKey(key) {
     const formattedDate = formatDate(key); // Format the date string
     const results = await this.db('nursery')
       .select()
         .whereILike('month_report', `%${formattedDate}%`)
-        .orWhereILike('region', `%${key}%`);
+        .orWhereILike('region', `%${key}%`)
+        .orWhereILike('province', `%${key}%`)
+        .orWhereILike('district', `%${key}%`)
+        .orWhereILike('municipality', `%${key}%`)
+        .orWhereILike('barangay', `%${key}%`)
+        .orWhereILike('funded_by', `%${key}%`)
+        .orWhereILike('complete_name_of_cooperator_organization', `%${key}%`)
+        .orWhereILike('area_in_hectares_ha', `%${key}%`)
+        .orWhereILike('variety_used', `%${key}%`)
+        .orWhereILike('period_of_moa', `%${key}%`)
+        .orWhereILike('remarks', `%${key}%`);
     const convertedResults = convertDatesToTimezone(results, ['month_report', 'date_established']);
     return convertedResults;
   }
 
   async getGraphData(regionKey, dateKey) {
     const formattedDate = formatDate(dateKey);
+    const lastDayOfMonth = moment(formattedDate, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD');
+
     const query = this.db('nursery')
       .select('funded_by')
       .count('funded_by as count')
@@ -81,18 +92,22 @@ class NurseryStore {
 
     if (regionKey) {
       query.where('region', regionKey);
-    }
-
-    if (dateKey) {
-      query.where('month_report', formattedDate);
-    }
-
-    if (!regionKey && formattedDate) {
-      query.where('month_report', formattedDate);
+    } else if (dateKey) {
+      query.whereBetween('month_report', [formattedDate, lastDayOfMonth]);
+    } else {
+      return null;
     }
 
     return await query;
   }
+}
+
+function formatDate(dateString) {
+  const date = moment(dateString, 'YYYY/MM/DD', true); // Use moment.js to parse the date
+  if (!date.isValid()) {
+    return ("Invalid Date! Use this format YYYY/MM/DD");
+  }
+  return date.format('YYYY-MM-DD');
 }
 
 function convertDatesToTimezone(rows, dateFields) {
@@ -105,16 +120,6 @@ function convertDatesToTimezone(rows, dateFields) {
     return { ...row, ...convertedFields };
   });
 }
-
-function formatDate(dateString) {
-  const date = moment(dateString, 'YYYY/MM/DD', true); // Use moment.js to parse the date
-  if (!date.isValid()) {
-    return (""); //DITO YUNG DEFAULT NA PREVIOUS AND CURRENT MONTH!!
-  }
-  return date.format('YYYY-MM-DD');
-}
-
-
 
 module.exports = NurseryStore;
 

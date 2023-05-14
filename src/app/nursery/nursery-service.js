@@ -6,7 +6,7 @@ const { DateTime } = require('luxon');
 class NurseryService {
   constructor(nurseryStore) {
   }
-
+//ITO YUNG PANG IADJUST AND FIRST ROW OF DATA SA EXCEL
 // for (let i = 1; i < jsonData.length; i++) {
 // const row = jsonData[i];  
 
@@ -101,7 +101,7 @@ class NurseryService {
     const nurseryStore = new NurseryStore(req.db);
     const uuid = req.params.uuid;
     const nursery = await nurseryStore.getNurseryByUUID(uuid);
-    if (!nursery) {
+    if (nursery < 1) {
       return res.status(404).send({
         success: false,
         message: 'Nursery Data Not Found'

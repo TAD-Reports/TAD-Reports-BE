@@ -1,3 +1,11 @@
+// AUTO CLEAR TERMINAL
+const clearTerminal = () => {
+  process.stdout.write('\x1B[2J\x1B[3J\x1B[H');
+};
+clearTerminal();
+//-------------------------------------------
+
+
 const express = require('express');
 const cors = require('cors');
 const service = require('./src/app/rest');
@@ -10,5 +18,5 @@ app.use('/', service);
 const PORT = process.env.PORT || 9000;
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}`)
+  console.log(`TAD REPORT app listening on port ${PORT}`)
 })

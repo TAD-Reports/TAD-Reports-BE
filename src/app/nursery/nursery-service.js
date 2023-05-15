@@ -53,6 +53,14 @@ class NurseryService {
       // Iterate over each row in the JSON data
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
+
+        // Check if any required fields are empty
+        if (!row['Report Date'] || !row['Funded by'] || !row['Region'] || !row['Province'] || !row['Municipality'] 
+            || !row['Barangay'] || !row['Complete Name of Cooperator/ Organization'] || !row['Date Established'] 
+            || !row['Area in Hectares (ha)'] || !row['Variety Used'] || !row['Period of MOA']) {
+          return res.status(400).json({ 
+            error: `Incomplete data found in Excel row ${i + headerRowIndex + 2 + ' or below'}` });
+        }
         
         // Add the import_by field from req.body
         row.imported_by = nursery.imported_by;

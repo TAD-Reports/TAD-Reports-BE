@@ -23,13 +23,13 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
 
       }).createTable('nursery', (table) => {
         table.increments('uuid').primary();
-        table.date('month_report').notNullable();
+        table.date('report_date').notNullable();
+        table.string('funded_by').notNullable();
         table.string('region').notNullable();
         table.string('province').notNullable();
         table.string('district').nullable();
         table.string('municipality').notNullable();
         table.string('barangay').notNullable();
-        table.string('funded_by').notNullable();
         table.string('complete_name_of_cooperator_organization').notNullable();
         table.date('date_established').notNullable();
         table.double('area_in_hectares_ha').notNullable();

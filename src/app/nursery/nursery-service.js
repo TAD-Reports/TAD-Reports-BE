@@ -31,8 +31,19 @@ class NurseryService {
     // Assuming the data is in the first sheet (index 0)
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    // Convert the sheet data to JSON
-    const jsonData = XLSX.utils.sheet_to_json(sheet);
+    // Find the header row index
+    let headerRowIndex = 0;
+    const range = XLSX.utils.decode_range(sheet['!ref']);
+    for (let row = range.s.r; row <= range.e.r; row++) {
+      const cell = sheet[XLSX.utils.encode_cell({ r: row, c: 0 })];
+      if (cell && cell.v === 'Report Date') {
+        headerRowIndex = row;
+        break;
+      }
+    }
+
+    // Convert the sheet data to JSON starting from the header row
+    const jsonData = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex });
 
     const uniqueRows = new Map(); // Map to store unique rows with their row numbers
     const duplicateRows = []; // Array to store duplicate rows with their row numbers
@@ -42,19 +53,18 @@ class NurseryService {
       // Iterate over each row in the JSON data
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
+        
         // Add the import_by field from req.body
         row.imported_by = nursery.imported_by;
 
         // Convert the date format
-        if (row['Month Report'] && typeof row['Month Report'] === 'number') {
-          row['Month Report'] = convertExcelDate(row['Month Report']);
+        if (row['Report Date'] && typeof row['Report Date'] === 'number') {
+          row['Report Date'] = convertExcelDate(row['Report Date']);
         }
 
         if (row['Date Established'] && typeof row['Date Established'] === 'number') {
           row['Date Established'] = convertExcelDate(row['Date Established']);
         }
-
-
 
         const rowKey = JSON.stringify(row); // Convert the row object to a string for comparison
 
@@ -83,6 +93,7 @@ class NurseryService {
 
       // If no duplicate rows or existing rows, store all the rows in the database
       for (const row of jsonData) {
+        console.log(row);
         await nurseryStore.addNurseryRow(row);
       }
 

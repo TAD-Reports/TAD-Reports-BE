@@ -17,13 +17,13 @@ class NurseryStore {
 
   async addNurseryRow(row) {
     return await this.db('nursery').insert({
-      month_report: row['Month Report'],
+      report_date: row['Report Date'],
+      funded_by: row['Funded by'],
       region: row['Region'],
       province: row['Province'],
       district: row['District'],
       municipality: row['Municipality'],
       barangay: row['Barangay'],
-      funded_by: row['Funded by'],
       complete_name_of_cooperator_organization: row['Complete Name of Cooperator/ Organization'],
       date_established: row['Date Established'],
       area_in_hectares_ha: row['Area in Hectares (ha)'],
@@ -39,7 +39,7 @@ class NurseryStore {
     const results = await this.db('nursery')
       .select()
       .where('UUID', uuid);
-      const convertedResults = convertDatesToTimezone(results, ['month_report', 'date_established']);
+      const convertedResults = convertDatesToTimezone(results, ['report_date', 'date_established']);
       return convertedResults;
   }
 
@@ -53,8 +53,8 @@ class NurseryStore {
     const results = await this.db('nursery')
       .select()
       .orderBy('region')
-      .orderBy('month_report');
-    const convertedResults = convertDatesToTimezone(results, ['month_report', 'date_established']);
+      .orderBy('report_date');
+    const convertedResults = convertDatesToTimezone(results, ['report_date', 'date_established']);
     return convertedResults;
   }
 
@@ -65,19 +65,19 @@ class NurseryStore {
     const formattedDate = formatDate(key); // Format the date string
     const results = await this.db('nursery')
       .select()
-        .whereILike('month_report', `%${formattedDate}%`)
+        .whereILike('report_date', `%${formattedDate}%`)
+        .orWhereILike('funded_by', `%${key}%`)
         .orWhereILike('region', `%${key}%`)
         .orWhereILike('province', `%${key}%`)
         .orWhereILike('district', `%${key}%`)
         .orWhereILike('municipality', `%${key}%`)
         .orWhereILike('barangay', `%${key}%`)
-        .orWhereILike('funded_by', `%${key}%`)
         .orWhereILike('complete_name_of_cooperator_organization', `%${key}%`)
         .orWhereILike('area_in_hectares_ha', `%${key}%`)
         .orWhereILike('variety_used', `%${key}%`)
         .orWhereILike('period_of_moa', `%${key}%`)
         .orWhereILike('remarks', `%${key}%`);
-    const convertedResults = convertDatesToTimezone(results, ['month_report', 'date_established']);
+    const convertedResults = convertDatesToTimezone(results, ['report_date', 'date_established']);
     return convertedResults;
   }
 
@@ -93,7 +93,7 @@ class NurseryStore {
     if (regionKey) {
       query.where('region', regionKey);
     } else if (dateKey) {
-      query.whereBetween('month_report', [formattedDate, lastDayOfMonth]);
+      query.whereBetween('report_date', [formattedDate, lastDayOfMonth]);
     } else {
       return null;
     }

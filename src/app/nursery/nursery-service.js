@@ -88,7 +88,7 @@ class NurseryService {
           uniqueRows.set(rowKey, i + 1); // Add the row to the map with the current row number
 
           // Check if the row already exists in the database
-          const existingRow = await nurseryStore.getExistingRow(row);
+          const existingRow = await nurseryStore.getDuplicates(row);
 
           if (existingRow) {
             existingRows.push({ row: existingRow, rowNumber: i + 1 }); // Add the existing row with row number to the array
@@ -113,7 +113,7 @@ class NurseryService {
       // If no duplicate rows or existing rows, store all the rows in the database
       for (const row of jsonData) {
         console.log(row);
-        await nurseryStore.addNurseryRow(row);
+        await nurseryStore.add(row);
       }
 
       return res.status(200).json({ 
@@ -130,10 +130,10 @@ class NurseryService {
   }
 
   // Get Nursery
-  async getNursery(req, res) {
+  async get(req, res) {
     const nurseryStore = new NurseryStore(req.db);
     const uuid = req.params.uuid;
-    const nursery = await nurseryStore.getNurseryByUUID(uuid);
+    const nursery = await nurseryStore.getByUUID(uuid);
     if (nursery < 1) {
       return res.status(404).send({
         success: false,
@@ -147,11 +147,11 @@ class NurseryService {
   }
 
   // Delete a nursery
-  async deleteNursery(req, res) {
+  async delete(req, res) {
     const nurseryStore = new NurseryStore(req.db);
     const uuid = req.params.uuid;
     try {
-      const result = await nurseryStore.deleteNursery(uuid);
+      const result = await nurseryStore.delete(uuid);
       if (result === 0) {
         return res.status(404).send({
           success: false,
@@ -178,7 +178,7 @@ class NurseryService {
     let nursery;
 
     if (!key) {
-      nursery = await nurseryStore.getAllNursery();
+      nursery = await nurseryStore.getAll();
     } else {
       nursery = await nurseryStore.searchByKey(key);
     }
@@ -189,7 +189,7 @@ class NurseryService {
   }
 
   // Get Graph Data
-  async getGraphData(req, res) {
+  async getGraph(req, res) {
     const nurseryStore = new NurseryStore(req.db);
     const regionKey = req.query.region;
     const dateKey = req.query.date;

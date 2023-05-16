@@ -5,7 +5,7 @@ class NurseryStore {
     this.db = db;
   }
 
-  async getExistingRow(row) {
+  async getDuplicates(row) {
     const query = this.db('nursery');
     for (const [column, value] of Object.entries(row)) {
       const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
@@ -15,7 +15,7 @@ class NurseryStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
-  async addNurseryRow(row) {
+  async add(row) {
     return await this.db('nursery').insert({
       report_date: row['Report Date'],
       funded_by: row['Funded by'],
@@ -35,7 +35,7 @@ class NurseryStore {
     });
   }
 
-  async getNurseryByUUID(uuid) {
+  async getByUUID(uuid) {
     const results = await this.db('nursery')
       .select()
       .where('UUID', uuid);
@@ -43,19 +43,19 @@ class NurseryStore {
       return convertedResults;
   }
 
-  async deleteNursery(uuid) {
-    return await this.db('nursery')
-      .where('UUID', uuid)
-      .del();
-  }
-
-  async getAllNursery() {
+  async getAll() {
     const results = await this.db('nursery')
       .select()
       .orderBy('region')
       .orderBy('report_date');
     const convertedResults = convertDatesToTimezone(results, ['report_date', 'date_established']);
     return convertedResults;
+  }
+
+  async delete(uuid) {
+    return await this.db('nursery')
+      .where('UUID', uuid)
+      .del();
   }
 
   //TO DO:

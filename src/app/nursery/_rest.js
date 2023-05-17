@@ -15,11 +15,11 @@ router.post('/nursery', db, uploadFile, asyncHandler(nurseryService.add));
 //Get nursery
 router.get('/nursery/get/:uuid', db, asyncHandler(nurseryService.get));
 
-//Search
-router.get('/nursery/search', db, asyncHandler(nurseryService.search));
+// //Search
+// router.get('/nursery/search', db, asyncHandler(nurseryService.search));
 
-//Graph
-router.get('/nursery/graph', db, asyncHandler(nurseryService.getGraph));
+//Graph and Table
+router.get('/nursery/data', db, asyncHandler(nurseryService.getData));
 
 //Delete
 router.delete('/nursery/delete/:uuid', db, asyncHandler(nurseryService.delete));

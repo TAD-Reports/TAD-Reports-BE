@@ -162,41 +162,52 @@ class NurseryService {
   }
 
   // Search by key
-  async search(req, res) {
-    const nurseryStore = new NurseryStore(req.db);
-    const key = req.query.key; // Get the key from query parameters
-    let nursery;
-
-    if (!key) {
-      nursery = await nurseryStore.getAll();
-    } else {
-      nursery = await nurseryStore.searchByKey(key);
-    }
-    return res.status(200).send({
-      success: true,
-      data: nursery
-    });
-  }
+  // async search(req, res) {
+  //   const nurseryStore = new NurseryStore(req.db);
+  //   const key = req.query.key; // Get the key from query parameters
+  //   let nursery;
+  
+  //   if (!key) {
+  //     nursery = await nurseryStore.getAll();
+  //   } else {
+  //     nursery = await nurseryStore.searchByKey(key);
+  //   }
+  //   return res.status(200).send({
+  //     success: true,
+  //     data: nursery
+  //   });
+  // }
 
   // Get Graph Data
-  async getGraph(req, res) {
+  async getData(req, res) {
     const nurseryStore = new NurseryStore(req.db);
-    const regionKey = req.query.region;
-    const dateKey = req.query.date;
+    const region = req.query.region;
+    const startDate = req.query.start;
+    const endDate = req.query.end;
+    const search = req.query.search;
+    let table;
     
     try {
-      const nursery = await nurseryStore.getGraph(regionKey, dateKey);
-    
-      if (!nursery) {
+      const monthGraph = await nurseryStore.getMonthGraph(region, startDate, endDate);    
+      const totalGraph = await nurseryStore.getTotalGraph(region, startDate, endDate);    
+      if (!monthGraph && !totalGraph) {
         return res.status(404).send({
           success: false,
           message: 'Nursery Data Not Found'
         });
       }
-
+      
+      if (!region && !startDate && !endDate && !search) {
+        table = await nurseryStore.getAll();
+      } else {
+        table = await nurseryStore.search(region, startDate, endDate, search);
+      }
+      
       return res.status(200).send({
         success: true,
-        data: nursery
+        monthGraph: monthGraph,
+        totalGraph: totalGraph,
+        table: table
       });
     } catch (error) {
       return res.status(500).send({ 
@@ -214,5 +225,6 @@ function convertExcelDate(excelDate) {
   const convertedDate = baseDate.plus({ days: excelDate - 2 });
   return convertedDate.toFormat('yyyy/MM/dd');
 }
+
 
 module.exports = NurseryService;

@@ -81,7 +81,7 @@ class NurseryStore {
     return convertedResults;
   }
 
-  async getGraphData(regionKey, dateKey) {
+  async getGraph(regionKey, dateKey) {
     const formattedDate = formatDate(dateKey);
     const lastDayOfMonth = moment(formattedDate, 'YYYY-MM-DD').endOf('month').format('YYYY-MM-DD');
 

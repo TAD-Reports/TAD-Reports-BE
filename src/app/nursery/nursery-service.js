@@ -11,17 +11,14 @@ class NurseryService {
 // const row = jsonData[i];  
 
   // Add Nursery
-  async addNursery(req, res) {
+  async add(req, res) {
     const nurseryStore = new NurseryStore(req.db);
     const logsStore = new LogsStore(req.db);
     const nursery = req.body;
 
     // Check if a file was uploaded
     if (!req.file) {
-      return res.status(400).json({ 
-        success: false,
-        message: "No file uploaded"
-      });
+      return res.status(400).json({ error: "No file uploaded" });
     }
 
     // Get the uploaded file and read its contents
@@ -62,9 +59,7 @@ class NurseryService {
             || !row['Barangay'] || !row['Complete Name of Cooperator/ Organization'] || !row['Date Established'] 
             || !row['Area in Hectares (ha)'] || !row['Variety Used'] || !row['Period of MOA']) {
           return res.status(400).json({ 
-            success: false,
-            message: `Incomplete data found in Excel row ${i + headerRowIndex + 2 + ' or below'}`
-          });
+            error: `Incomplete data found in Excel row ${i + headerRowIndex + 2 + ' or below'}` });
         }
         
         // Add the import_by field from req.body
@@ -97,17 +92,11 @@ class NurseryService {
       }
 
       if (duplicateRows.length > 0) {
-        return res.status(400).json({ 
-          success: false,
-          message: "Duplicate rows found in Excel", duplicateRows
-        });
+        return res.status(400).json({ error: "Duplicate rows found in Excel", duplicateRows });
       }
 
       if (existingRows.length > 0) {
-        return res.status(400).json({ 
-          success: false,
-          message: "Existing rows found in the Database", existingRows
-        });
+        return res.status(400).json({ error: "Existing rows found in the Database", existingRows });
       }
 
       // If no duplicate rows or existing rows, store all the rows in the database
@@ -122,10 +111,7 @@ class NurseryService {
       });
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ 
-        success: false,
-        message: "Failed to add data to the database"
-      });
+      return res.status(500).json({ error: "Failed to add data to the database" });
     }
   }
 
@@ -195,7 +181,7 @@ class NurseryService {
     const dateKey = req.query.date;
     
     try {
-      const nursery = await nurseryStore.getGraphData(regionKey, dateKey);
+      const nursery = await nurseryStore.getGraph(regionKey, dateKey);
     
       if (!nursery) {
         return res.status(404).send({

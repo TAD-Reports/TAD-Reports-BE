@@ -51,6 +51,7 @@ class NurseryService {
 
     try {
       // Iterate over each row in the JSON data
+      const rowsToAdd = [];
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
 
@@ -85,7 +86,9 @@ class NurseryService {
           // Check if the row already exists in the database
           const existingRow = await nurseryStore.getDuplicates(row);
 
-          if (existingRow) {
+          if (!existingRow) {
+            rowsToAdd.push(row); // Add the row to the rowsToAdd array
+          } else {
             existingRows.push({ row: existingRow, rowNumber: i + 1 }); // Add the existing row with row number to the array
           }
         }
@@ -95,23 +98,24 @@ class NurseryService {
         return res.status(400).json({ error: "Duplicate rows found in Excel", duplicateRows });
       }
 
-      if (existingRows.length > 0) {
-        return res.status(400).json({ error: "Existing rows found in the Database", existingRows });
-      }
-
       // If no duplicate rows or existing rows, store all the rows in the database
-      for (const row of jsonData) {
-        console.log(row);
+      const rowsAdded = [];
+      for (const row of rowsToAdd) {
         await nurseryStore.add(row);
+        rowsAdded.push(row);
       }
 
       return res.status(200).json({ 
         success: true,
-        message: `${file.originalname} data imported successfully`
+        message: `${rowsAdded.length} rows are added from ${file.originalname} into the database`,
+        data: rowsAdded,
+        duplicates: existingRows.length
       });
     } catch (err) {
       console.error(err);
-      return res.status(500).json({ error: "Failed to add data to the database" });
+      return res.status(500).json({ 
+        error: "Failed to add data to the database" 
+      });
     }
   }
 

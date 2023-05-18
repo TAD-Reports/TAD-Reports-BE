@@ -9,16 +9,6 @@ class NurseryStore {
     this.cols = nurseryTableConfig.columnNames;
   }
 
-  async getDuplicates(row) {
-    const query = this.db(this.table);
-    for (const [column, value] of Object.entries(row)) {
-      const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
-      query.where(columnName, value);
-    }
-    const existingRows = await query.select('*');
-    return existingRows.length > 0 ? existingRows : null;
-  }
-
   async add(row) {
     return await this.db('nursery').insert({
       report_date: row['Report Date'],
@@ -37,6 +27,16 @@ class NurseryStore {
       status: 1, // Assuming 'status' is always 1
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
+  }
+
+  async getDuplicates(row) {
+    const query = this.db(this.table);
+    for (const [column, value] of Object.entries(row)) {
+      const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
+      query.where(columnName, value);
+    }
+    const existingRows = await query.select('*');
+    return existingRows.length > 0 ? existingRows : null;
   }
 
   async getByUUID(uuid) {
@@ -61,37 +61,36 @@ class NurseryStore {
       .where(this.cols.id, uuid)
       .del();
   }
+  
 
-  //TO DO:
-  //devided Region search per user
-
-async getCurrentMonthRecords(startOfMonth, endOfMonth) {
-  const query = await this.db(this.table)
-    .count(`${this.cols.reportDate} as count`)
-    .whereBetween(this.cols.reportDate, [startOfMonth, endOfMonth]);
-  return query;
-}
-
-async getTotalGraph(region, startDate, endDate, search) {
-  const formattedStartDate = formatDate(startDate);
-  const formattedEndDate = formatDate(endDate);
-  let firstDate;
-  let lastDate;
-  const currentMonthRecordCount = await this.getCurrentMonthRecords(
-    firstDateOfMonth(),
-    lastDateOfMonth()
-  );
-  if (currentMonthRecordCount[0].count > 0) {
-    firstDate = firstDateOfMonth();
-    lastDate = lastDateOfMonth();
-  } else {
-    firstDate = previousMonth(firstDateOfMonth());
-    lastDate = previousMonth(lastDateOfMonth());
+  async getCurrentMonthRecords(startOfMonth, endOfMonth) {
+    const query = await this.db(this.table)
+      .count(`${this.cols.reportDate} as count`)
+      .whereBetween(this.cols.reportDate, [startOfMonth, endOfMonth]);
+    return query;
   }
-  const query = this.db(this.table)
-    .select(`${this.cols.fundedBy} as name`)
-    .sum(`${this.cols.area} as total`)
-    .groupBy(this.cols.fundedBy);
+
+
+  async getTotalGraph(region, startDate, endDate, search) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    let firstDate;
+    let lastDate;
+    const currentMonthRecordCount = await this.getCurrentMonthRecords(
+      firstDateOfMonth(),
+      lastDateOfMonth()
+    );
+    if (currentMonthRecordCount[0].count > 0) {
+      firstDate = firstDateOfMonth();
+      lastDate = lastDateOfMonth();
+    } else {
+      firstDate = previousMonth(firstDateOfMonth());
+      lastDate = previousMonth(lastDateOfMonth());
+    }
+    const query = this.db(this.table)
+      .select(`${this.cols.fundedBy} as name`)
+      .sum(`${this.cols.area} as total`)
+      .groupBy(this.cols.fundedBy);
     if (startDate && endDate) {
     query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {

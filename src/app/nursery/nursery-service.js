@@ -2,6 +2,7 @@ const NurseryStore = require('./nursery-store');
 const LogsStore = require('../logs/logs-store');
 const XLSX = require('xlsx');
 const { DateTime } = require('luxon');
+const { NotFoundError, BadRequestError, FileUploadError, errorHandler } = require('../../middlewares/errors');
 
 class NurseryService {
   constructor(nurseryStore) {
@@ -11,45 +12,45 @@ class NurseryService {
 // const row = jsonData[i];  
 
   // Add Nursery
-  async add(req, res) {
-    const nurseryStore = new NurseryStore(req.db);
-    const logsStore = new LogsStore(req.db);
-    const nursery = req.body;
-
-    // Check if a file was uploaded
-    if (!req.file) {
-      return res.status(400).json({ error: "No file uploaded" });
-    }
-
-    // Get the uploaded file and read its contents
-    const file = req.file;
-    const fileContents = file.buffer;
-
-    // Read the Excel file
-    const workbook = XLSX.read(fileContents, { type: 'buffer' });
-
-    // Assuming the data is in the first sheet (index 0)
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-    // Find the header row index
-    let headerRowIndex = 0;
-    const range = XLSX.utils.decode_range(sheet['!ref']);
-    for (let row = range.s.r; row <= range.e.r; row++) {
-      const cell = sheet[XLSX.utils.encode_cell({ r: row, c: 0 })];
-      if (cell && cell.v === 'Report Date') {
-        headerRowIndex = row;
-        break;
-      }
-    }
-
-    // Convert the sheet data to JSON starting from the header row
-    const jsonData = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex });
-
-    const uniqueRows = new Map(); // Map to store unique rows with their row numbers
-    const duplicateRows = []; // Array to store duplicate rows with their row numbers
-    const existingRows = []; // Array to store existing rows with their row numbers
-
+  async add(req, res, next) {
     try {
+      const nurseryStore = new NurseryStore(req.db);
+      const logsStore = new LogsStore(req.db);
+      const nursery = req.body;
+
+      // Check if a file was uploaded
+      if (!req.file) {
+        throw new FileUploadError('No file uploaded');
+      }
+
+      // Get the uploaded file and read its contents
+      const file = req.file;
+      const fileContents = file.buffer;
+
+      // Read the Excel file
+      const workbook = XLSX.read(fileContents, { type: 'buffer' });
+
+      // Assuming the data is in the first sheet (index 0)
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+
+      // Find the header row index
+      let headerRowIndex = 0;
+      const range = XLSX.utils.decode_range(sheet['!ref']);
+      for (let row = range.s.r; row <= range.e.r; row++) {
+        const cell = sheet[XLSX.utils.encode_cell({ r: row, c: 0 })];
+        if (cell && cell.v === 'Report Date') {
+          headerRowIndex = row;
+          break;
+        }
+      }
+
+      // Convert the sheet data to JSON starting from the header row
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex });
+
+      const uniqueRows = new Map(); // Map to store unique rows with their row numbers
+      const duplicateRows = []; // Array to store duplicate rows with their row numbers
+      const existingRows = []; // Array to store existing rows with their row numbers
+
       // Iterate over each row in the JSON data
       const rowsToAdd = [];
       for (let i = 0; i < jsonData.length; i++) {
@@ -59,8 +60,7 @@ class NurseryService {
         if (!row['Report Date'] || !row['Funded by'] || !row['Region'] || !row['Province'] || !row['Municipality'] 
             || !row['Barangay'] || !row['Complete Name of Cooperator/ Organization'] || !row['Date Established'] 
             || !row['Area in Hectares (ha)'] || !row['Variety Used'] || !row['Period of MOA']) {
-          return res.status(400).json({ 
-            error: `Incomplete data found in Excel row ${i + headerRowIndex + 2 + ' or below'}` });
+          throw new BadRequestError(`Incomplete data found in Excel row ${i + headerRowIndex + 2} or below`);
         }
         
         // Add the import_by field from req.body
@@ -85,17 +85,20 @@ class NurseryService {
 
           // Check if the row already exists in the database
           const existingRow = await nurseryStore.getDuplicates(row);
-
+          
           if (!existingRow) {
             rowsToAdd.push(row); // Add the row to the rowsToAdd array
           } else {
-            existingRows.push({ row: existingRow, rowNumber: i + 1 }); // Add the existing row with row number to the array
+            existingRows.push({ 
+              success: false,
+              message: existingRow, rowNumber: i + 1 
+            }); // Add the existing row with row number to the array
           }
         }
       }
 
       if (duplicateRows.length > 0) {
-        return res.status(400).json({ error: "Duplicate rows found in Excel", duplicateRows });
+        throw new FileUploadError("Duplicate rows found in Excel", duplicateRows);
       }
 
       // If no duplicate rows or existing rows, store all the rows in the database
@@ -108,85 +111,97 @@ class NurseryService {
       return res.status(200).json({ 
         success: true,
         message: `${rowsAdded.length} rows are added from ${file.originalname} into the database`,
-        data: rowsAdded,
-        duplicates: existingRows.length
+        duplicates: existingRows.length,
+        data: rowsAdded
       });
     } catch (err) {
-      console.error(err);
-      return res.status(500).json({ 
-        error: "Failed to add data to the database" 
-      });
+      next(err);
     }
   }
 
   // Get Nursery
-  async get(req, res) {
-    const nurseryStore = new NurseryStore(req.db);
-    const uuid = req.params.uuid;
-    const nursery = await nurseryStore.getByUUID(uuid);
-    if (nursery < 1) {
-      return res.status(404).send({
-        success: false,
-        message: 'Nursery Data Not Found'
+  async get(req, res, next) {
+    try {
+      const nurseryStore = new NurseryStore(req.db);
+      const uuid = req.params.uuid;
+      const nursery = await nurseryStore.getByUUID(uuid);
+      if (!nursery) {
+        throw new NotFoundError('Data Not Found');
+      }
+      return res.status(200).send({
+        success: true,
+        data: data
       });
+    } catch (error) {
+      next(error);
     }
-    return res.status(200).send({
-      success: true,
-      data: nursery
-    });
+  }
+
+
+  // Update 
+    async update(req, res) {
+    try {
+      const nurseryStore = new NurseryStore(req.db);
+      const logsStore = new LogsStore(req.db);
+      const uuid = req.params.uuid;
+      const nursery = req.body;
+      const id = await nurseryStore.getByUUID(uuid);
+      if (!id) {
+        throw new NotFoundError('ID Not Found');
+      }
+      const result = nurseryStore.update(uuid, nursery);
+      if (result === 0 ) {
+        throw new NotFoundError('Data Not Found');
+      }
+      return res.status(200).send({
+        success: true,
+        data: {
+          uuid, ...nursery
+        }
+      });
+    } catch (error) {
+      next(error);
+    }
   }
 
   // Delete a nursery
   async delete(req, res) {
-    const nurseryStore = new NurseryStore(req.db);
-    const uuid = req.params.uuid;
     try {
+      const nurseryStore = new NurseryStore(req.db);
+      const uuid = req.params.uuid;
       const result = await nurseryStore.delete(uuid);
       if (result === 0) {
-        return res.status(404).send({
-          success: false,
-          message: 'Nursery not found'
-        });
+        throw new NotFoundError('Data Not Found');
       }
-    } catch (error) {
-      return res.status(500).send({ 
-        success: false,
-        message: 'Error deleting nursery',
-        error: error
+      return res.status(202).send({
+        success: true,
+        message: 'Deleted successfuly'
       });
+    } catch (error) {
+      next(error);
     }
-    return res.status(202).send({
-      success: true,
-      message: 'Nursery has been deleted'
-    });
   }
 
 
   // Get Graph Data
   async getData(req, res) {
-    const nurseryStore = new NurseryStore(req.db);
-    const region = req.query.region;
-    const startDate = req.query.start;
-    const endDate = req.query.end;
-    const search = req.query.search;
-    let table;
-    
     try {
+      const nurseryStore = new NurseryStore(req.db);
+      const region = req.query.region;
+      const startDate = req.query.start;
+      const endDate = req.query.end;
+      const search = req.query.search;
+      let table;
       const monthGraph = await nurseryStore.getMonthGraph(region, startDate, endDate);    
       const totalGraph = await nurseryStore.getTotalGraph(region, startDate, endDate);    
       if (!monthGraph && !totalGraph) {
-        return res.status(404).send({
-          success: false,
-          message: 'Nursery Data Not Found'
-        });
+        throw new NotFoundError('Data Not Found');
       }
-      
       if (!region && !startDate && !endDate && !search) {
         table = await nurseryStore.getAll();
       } else {
         table = await nurseryStore.search(region, startDate, endDate, search);
       }
-      
       return res.status(200).send({
         success: true,
         monthGraph: monthGraph,
@@ -194,11 +209,7 @@ class NurseryService {
         table: table
       });
     } catch (error) {
-      return res.status(500).send({ 
-        success: false,
-        message: 'Error retrieving nursery data',
-        error: error.message
-      });
+      next(error);
     }
   }
 }

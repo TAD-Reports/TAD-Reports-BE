@@ -20,21 +20,21 @@ class NurseryStore {
   }
 
   async add(row) {
-    return await this.db(this.table).insert({
-      report_date: row[this.cols.reportDate],
-      funded_by: row[this.cols.fundedBy],
-      region: row[this.cols.region],
-      province: row[this.cols.province],
-      district: row[this.cols.distric],
-      municipality: row[this.cols.municipality],
-      barangay: row[this.cols.barangay],
-      complete_name_of_cooperator_organization: row[this.cols.cooperator],
-      date_established: row[this.cols.establishedDate],
-      area_in_hectares_ha: row[this.cols.area],
-      variety_used: row[this.cols.variety],
-      period_of_moa: row[this.cols.moa],
-      remarks: row[this.cols.remarks],
-      status: 1, // Assuming 'status' is default as 1 for active
+    return await this.db('nursery').insert({
+      report_date: row['Report Date'],
+      funded_by: row['Funded by'],
+      region: row['Region'],
+      province: row['Province'],
+      district: row['District'],
+      municipality: row['Municipality'],
+      barangay: row['Barangay'],
+      complete_name_of_cooperator_organization: row['Complete Name of Cooperator/ Organization'],
+      date_established: row['Date Established'],
+      area_in_hectares_ha: row['Area in Hectares (ha)'],
+      variety_used: row['Variety Used'],
+      period_of_moa: row['Period of MOA'],
+      remarks: row['Remarks'],
+      status: 1, // Assuming 'status' is always 1
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }

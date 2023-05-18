@@ -161,22 +161,6 @@ class NurseryService {
     });
   }
 
-  // Search by key
-  // async search(req, res) {
-  //   const nurseryStore = new NurseryStore(req.db);
-  //   const key = req.query.key; // Get the key from query parameters
-  //   let nursery;
-  
-  //   if (!key) {
-  //     nursery = await nurseryStore.getAll();
-  //   } else {
-  //     nursery = await nurseryStore.searchByKey(key);
-  //   }
-  //   return res.status(200).send({
-  //     success: true,
-  //     data: nursery
-  //   });
-  // }
 
   // Get Graph Data
   async getData(req, res) {

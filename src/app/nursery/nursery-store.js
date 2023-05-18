@@ -29,6 +29,27 @@ class NurseryStore {
     });
   }
 
+  async update(uuid, data) {
+    return await this.db(this.table)
+      .where(this.cols.id, uuid)
+      .update({
+        report_date: data.reportDate,
+        funded_by: data.fundedBy,
+        region: data.region,
+        province: data.province,
+        district: data.district,
+        municipality: data.municipality,
+        barangay: data.barangay,
+        complete_name_of_cooperator_organization: data.cooperator,
+        date_established: data.establishedDate,
+        area_in_hectares_ha: data.area,
+        variety_used: data.variety,
+        period_of_moa: data.moa,
+        remarks: data.remarks,
+        status: data.status, // Assuming 'status' is always 1
+      });
+  }
+
   async getDuplicates(row) {
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {

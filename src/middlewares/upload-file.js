@@ -16,7 +16,7 @@ const upload = multer({
 const uploadFile = (req, res, next) => {
   upload.single('file')(req, res, function(err) {
     if (err) {
-      return res.status(400).json({ error: err.message });
+      return next(err); // Pass the error to the global error handling middleware
     }
     next();
   });

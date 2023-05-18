@@ -107,7 +107,7 @@ class NurseryService {
         await nurseryStore.add(row);
         rowsAdded.push(row);
       }
-      
+
       return res.status(200).json({ 
         success: true,
         message: `${rowsAdded.length} rows are added from ${file.originalname} into the database`,
@@ -139,7 +139,7 @@ class NurseryService {
 
 
   // Update 
-    async update(req, res) {
+    async update(req, res, next) {
     try {
       const nurseryStore = new NurseryStore(req.db);
       const logsStore = new LogsStore(req.db);
@@ -165,7 +165,7 @@ class NurseryService {
   }
 
   // Delete a nursery
-  async delete(req, res) {
+  async delete(req, res, next) {
     try {
       const nurseryStore = new NurseryStore(req.db);
       const uuid = req.params.uuid;
@@ -184,7 +184,7 @@ class NurseryService {
 
 
   // Get Graph Data
-  async getData(req, res) {
+  async getData(req, res, next) {
     try {
       const nurseryStore = new NurseryStore(req.db);
       const region = req.query.region;
@@ -192,8 +192,8 @@ class NurseryService {
       const endDate = req.query.end;
       const search = req.query.search;
       let table;
-      const monthGraph = await nurseryStore.getMonthGraph(region, startDate, endDate);    
-      const totalGraph = await nurseryStore.getTotalGraph(region, startDate, endDate);    
+      const monthGraph = await nurseryStore.getMonthGraph(region, startDate, endDate, search);    
+      const totalGraph = await nurseryStore.getTotalGraph(region, startDate, endDate, search);    
       if (!monthGraph && !totalGraph) {
         throw new NotFoundError('Data Not Found');
       }

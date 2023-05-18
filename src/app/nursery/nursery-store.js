@@ -9,6 +9,7 @@ class NurseryStore {
     this.cols = nurseryTableConfig.columnNames;
   }
 
+
   async add(row) {
     return await this.db('nursery').insert({
       report_date: row['Report Date'],
@@ -29,6 +30,7 @@ class NurseryStore {
     });
   }
 
+
   async update(uuid, data) {
     return await this.db(this.table)
       .where(this.cols.id, uuid)
@@ -46,9 +48,10 @@ class NurseryStore {
         variety_used: data.variety,
         period_of_moa: data.moa,
         remarks: data.remarks,
-        status: data.status, // Assuming 'status' is always 1
+        status: data.status, 
       });
   }
+
 
   async getDuplicates(row) {
     const query = this.db(this.table);
@@ -60,6 +63,7 @@ class NurseryStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
+
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -67,6 +71,7 @@ class NurseryStore {
       const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
       return convertedResults;
   }
+
 
   async getAll() {
     const results = await this.db(this.table)
@@ -76,6 +81,7 @@ class NurseryStore {
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
     return convertedResults;
   }
+
 
   async delete(uuid) {
     return await this.db(this.table)
@@ -192,6 +198,7 @@ class NurseryStore {
     return graphData;
   }
 
+  
   async search(region, startDate, endDate, search) {
     const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);

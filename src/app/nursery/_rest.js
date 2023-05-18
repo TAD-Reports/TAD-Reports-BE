@@ -18,9 +18,6 @@ router.post('/nursery', db, uploadFile, asyncHandler(nurseryService.add));
 //Get nursery
 router.get('/nursery/get/:uuid', db, asyncHandler(nurseryService.get));
 
-// //Search
-// router.get('/nursery/search', db, asyncHandler(nurseryService.search));
-
 //Graph and Table
 router.get('/nursery/data', db, asyncHandler(nurseryService.getData));
 

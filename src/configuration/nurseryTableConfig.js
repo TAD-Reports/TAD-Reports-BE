@@ -6,7 +6,7 @@ module.exports = {
     fundedBy: 'funded_by',
     region: 'region',
     province: 'province',
-    distric: 'district',
+    district: 'district',
     municipality: 'municipality',
     barangay: 'barangay',
     cooperator: 'complete_name_of_cooperator_organization',

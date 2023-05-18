@@ -1,13 +1,16 @@
 const { query } = require('express');
 const moment = require('moment-timezone');
+const nurseryTableConfig = require('../../configuration/nurseryTableConfig');
 
 class NurseryStore {
   constructor(db) {
     this.db = db;
+    this.table = nurseryTableConfig.tableName;
+    this.cols = nurseryTableConfig.columnNames;
   }
 
   async getDuplicates(row) {
-    const query = this.db('nursery');
+    const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
       const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
       query.where(columnName, value);
@@ -17,45 +20,45 @@ class NurseryStore {
   }
 
   async add(row) {
-    return await this.db('nursery').insert({
-      report_date: row['Report Date'],
-      funded_by: row['Funded by'],
-      region: row['Region'],
-      province: row['Province'],
-      district: row['District'],
-      municipality: row['Municipality'],
-      barangay: row['Barangay'],
-      complete_name_of_cooperator_organization: row['Complete Name of Cooperator/ Organization'],
-      date_established: row['Date Established'],
-      area_in_hectares_ha: row['Area in Hectares (ha)'],
-      variety_used: row['Variety Used'],
-      period_of_moa: row['Period of MOA'],
-      remarks: row['Remarks'],
-      status: 1, // Assuming 'status' is always 1
+    return await this.db(this.table).insert({
+      report_date: row[this.cols.reportDate],
+      funded_by: row[this.cols.fundedBy],
+      region: row[this.cols.region],
+      province: row[this.cols.province],
+      district: row[this.cols.distric],
+      municipality: row[this.cols.municipality],
+      barangay: row[this.cols.barangay],
+      complete_name_of_cooperator_organization: row[this.cols.cooperator],
+      date_established: row[this.cols.establishedDate],
+      area_in_hectares_ha: row[this.cols.area],
+      variety_used: row[this.cols.variety],
+      period_of_moa: row[this.cols.moa],
+      remarks: row[this.cols.remarks],
+      status: 1, // Assuming 'status' is default as 1 for active
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
 
   async getByUUID(uuid) {
-    const results = await this.db('nursery')
+    const results = await this.db(this.table)
       .select()
-      .where('UUID', uuid);
-      const convertedResults = convertDatesToTimezone(results, ['report_date', 'date_established']);
+      .where(this.cols.id, uuid);
+      const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
       return convertedResults;
   }
 
   async getAll() {
-    const results = await this.db('nursery')
+    const results = await this.db(this.table)
       .select()
-      .orderBy('region')
-      .orderBy('report_date');
-    const convertedResults = convertDatesToTimezone(results, ['report_date', 'date_established']);
+      .orderBy(this.cols.region)
+      .orderBy(this.cols.reportDate);
+    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
     return convertedResults;
   }
 
   async delete(uuid) {
-    return await this.db('nursery')
-      .where('UUID', uuid)
+    return await this.db(this.table)
+      .where(this.cols.id, uuid)
       .del();
   }
 
@@ -63,25 +66,21 @@ class NurseryStore {
   //devided Region search per user
 
 async getCurrentMonthRecords(startOfMonth, endOfMonth) {
-  const query = await this.db('nursery')
-    .count('report_date as count')
-    .whereBetween('report_date', [startOfMonth, endOfMonth]);
+  const query = await this.db(this.table)
+    .count(`${this.cols.reportDate} as count`)
+    .whereBetween(this.cols.reportDate, [startOfMonth, endOfMonth]);
   return query;
 }
 
-async getTotalGraph(region, startDate, endDate) {
+async getTotalGraph(region, startDate, endDate, search) {
   const formattedStartDate = formatDate(startDate);
   const formattedEndDate = formatDate(endDate);
-
   let firstDate;
   let lastDate;
-
   const currentMonthRecordCount = await this.getCurrentMonthRecords(
     firstDateOfMonth(),
     lastDateOfMonth()
   );
-  console.log(currentMonthRecordCount);
-
   if (currentMonthRecordCount[0].count > 0) {
     firstDate = firstDateOfMonth();
     lastDate = lastDateOfMonth();
@@ -89,45 +88,74 @@ async getTotalGraph(region, startDate, endDate) {
     firstDate = previousMonth(firstDateOfMonth());
     lastDate = previousMonth(lastDateOfMonth());
   }
-
-  const query = this.db('nursery')
-    .select('funded_by as name')
-    .sum('area_in_hectares_ha as total')
-    .groupBy('funded_by');
-
+  const query = this.db(this.table)
+    .select(`${this.cols.fundedBy} as name`)
+    .sum(`${this.cols.area} as total`)
+    .groupBy(this.cols.fundedBy);
     if (startDate && endDate) {
-    query.whereBetween('report_date', [formattedStartDate, formattedEndDate]);
-  } else {
-    query.whereBetween('report_date', [firstDate, lastDate]);
-  }
-
-  if (region) {
-    query.where('region', region);
-  }
-
-  return await query;
-}
-
-
-  async getMonthGraph(region, startDate, endDate) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const query = this.db('nursery')
-      .select('report_date')
-      .select('funded_by')
-      .groupBy('funded_by')
-      .groupBy('report_date')
-      .select(this.db.raw('SUM(area_in_hectares_ha) AS area'));
-
-    if (startDate && endDate) {
-      query.whereBetween('report_date', [formattedStartDate, formattedEndDate]);
+    query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
-      query.where('region', region);
+      query.where(this.cols.region, region);
+    }
+    if (search) {
+      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+      query.andWhere((builder) => {
+        builder.where((innerBuilder) => {
+          Object.keys(columns).forEach((column) => {
+            innerBuilder.orWhere(column, 'like', `%${search}%`);
+          });
+        });
+      });
+    }
+    return await query;
+  }
+
+
+  async getMonthGraph(region, startDate, endDate, search) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    let firstDate;
+    let lastDate;
+    const currentMonthRecordCount = await this.getCurrentMonthRecords(
+      firstDateOfMonth(),
+      lastDateOfMonth()
+    );
+    if (currentMonthRecordCount[0].count > 0) {
+      firstDate = firstDateOfMonth();
+      lastDate = lastDateOfMonth();
+    } else {
+      firstDate = previousMonth(firstDateOfMonth());
+      lastDate = previousMonth(lastDateOfMonth());
+    }
+    const query = this.db(this.table)
+      .select(this.cols.reportDate)
+      .select(this.cols.fundedBy)
+      .groupBy(this.cols.fundedBy)
+      .groupBy(this.cols.reportDate)
+      .select(this.db.raw(`SUM(${this.cols.area}) AS area`));
+    if (startDate && endDate) {
+      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+    }
+    if (region) {
+      query.where(this.cols.region, region);
+    }
+    if (search) {
+      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+      query.andWhere((builder) => {
+        builder.where((innerBuilder) => {
+          Object.keys(columns).forEach((column) => {
+            innerBuilder.orWhere(column, 'like', `%${search}%`);
+          });
+        });
+      });
     }
     const results = await query;
-    
-    // Perform data manipulation to divide sum_area by month
+    // Data manipulation to divide sum_area by month
     const graphData = [];
     results.forEach(row => {
       const month = moment(row.report_date).format('MMMYYYY');
@@ -148,30 +176,25 @@ async getTotalGraph(region, startDate, endDate) {
     const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    const query = this.db('nursery').select();
-  
+    const query = this.db(this.table).select();
     if (startDate && endDate) {
-      query.whereBetween('report_date', [formattedStartDate, formattedEndDate]);
-    } else if (region) {
-      query.andWhereILike('region', `%${region}%`);
-    } else if (search) {
-      query.andWhereILike('report_date', `%${formattedDate}%`)
-          .andWhereILike('funded_by', `%${search}%`)
-          .andWhereILike('province', `%${search}%`)
-          .andWhereILike('district', `%${search}%`)
-          .andWhereILike('municipality', `%${search}%`)
-          .andWhereILike('barangay', `%${search}%`)
-          .andWhereILike('complete_name_of_cooperator_organization', `%${search}%`)
-          .andWhereILike('date_established', `%${formattedDate}%`)
-          .andWhereILike('area_in_hectares_ha', `%${search}%`)
-          .andWhereILike('variety_used', `%${search}%`)
-          .andWhereILike('period_of_moa', `%${search}%`)
-          .andWhereILike('remarks', `%${search}%`);
-    } else {
-      return "JC BADING"
+      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } 
+    if (region) {
+      query.where(this.cols.region, region);
+    }
+    if (search) {
+      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+      query.andWhere((builder) => {
+        builder.where((innerBuilder) => {
+          Object.keys(columns).forEach((column) => {
+            innerBuilder.orWhere(column, 'like', `%${search}%`);
+          });
+        });
+      });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), ['report_date', 'date_established']);
+    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.establishedDate]);
     return convertedResults;
   }
 }
@@ -179,7 +202,8 @@ async getTotalGraph(region, startDate, endDate) {
 function formatDate(dateString) {
   const date = moment(dateString, 'YYYY/MM/DD', true); // Use moment.js to parse the date
   if (!date.isValid()) {
-    return ("Invalid Date! Use this format YYYY/MM/DD");
+    console.log("Invalid Date! Use this format YYYY/MM/DD");
+    return ("");
   }
   return date.format('YYYY-MM-DD');
 }

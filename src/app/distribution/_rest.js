@@ -9,14 +9,14 @@ const uploadFile = require('../../middlewares/upload-file');
 const distributionService = new DistributionService();
 const router = express.Router();
 
-//Get nursery
-router.get('/distribution/get/:uuid', db, asyncHandler(distributionService.getNursery));
+//Get 
+router.get('/distribution/get/:uuid', db, asyncHandler(distributionService.get));
 
-//Add nursery / Import
-router.post('/distribution', db, uploadFile, asyncHandler(distributionService.addNursery));
+//Add 
+router.post('/distribution', db, uploadFile, asyncHandler(distributionService.add));
 
 //Delete
-router.delete('/distribution/delete/:uuid', db, asyncHandler(distributionService.deleteNursery));
+router.delete('/distribution/delete/:uuid', db, asyncHandler(distributionService.delete));
 
 //Search
 router.get('/distribution/search', db, asyncHandler(distributionService.search));

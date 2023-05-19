@@ -11,7 +11,7 @@ class NurseryStore {
 
 
   async add(row) {
-    return await this.db('nursery').insert({
+    return await this.db(this.table).insert({
       report_date: row['Report Date'],
       funded_by: row['Funded by'],
       region: row['Region'],
@@ -31,24 +31,24 @@ class NurseryStore {
   }
 
 
-  async update(uuid, data) {
+  async update(uuid, body) {
     return await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: data.reportDate,
-        funded_by: data.fundedBy,
-        region: data.region,
-        province: data.province,
-        district: data.district,
-        municipality: data.municipality,
-        barangay: data.barangay,
-        complete_name_of_cooperator_organization: data.cooperator,
-        date_established: data.establishedDate,
-        area_in_hectares_ha: data.area,
-        variety_used: data.variety,
-        period_of_moa: data.moa,
-        remarks: data.remarks,
-        status: data.status, 
+        report_date: body.reportDate,
+        funded_by: body.fundedBy,
+        region: body.region,
+        province: body.province,
+        district: body.district,
+        municipality: body.municipality,
+        barangay: body.barangay,
+        complete_name_of_cooperator_organization: body.cooperator,
+        date_established: body.establishedDate,
+        area_in_hectares_ha: body.area,
+        variety_used: body.variety,
+        period_of_moa: body.moa,
+        remarks: body.remarks,
+        status: body.status, 
       });
   }
 
@@ -200,7 +200,7 @@ class NurseryStore {
 
   
   async search(region, startDate, endDate, search) {
-    const formattedDate = formatDate(search); // Format the date string
+    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const query = this.db(this.table).select();

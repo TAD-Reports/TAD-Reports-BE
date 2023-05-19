@@ -16,7 +16,7 @@ class NurseryService {
     try {
       const nurseryStore = new NurseryStore(req.db);
       const logsStore = new LogsStore(req.db);
-      const nursery = req.body;
+      const body = req.body;
 
       // Check if a file was uploaded
       if (!req.file) {
@@ -64,7 +64,7 @@ class NurseryService {
         }
         
         // Add the import_by field from req.body
-        row.imported_by = nursery.imported_by;
+        row.imported_by = body.imported_by;
 
         // Convert the date format
         if (row['Report Date'] && typeof row['Report Date'] === 'number') {
@@ -124,13 +124,13 @@ class NurseryService {
     try {
       const nurseryStore = new NurseryStore(req.db);
       const uuid = req.params.uuid;
-      const nursery = await nurseryStore.getByUUID(uuid);
-      if (!nursery) {
+      const result = await nurseryStore.getByUUID(uuid);
+      if (!result) {
         throw new NotFoundError('Data Not Found');
       }
       return res.status(200).send({
         success: true,
-        data: data
+        data: result
       });
     } catch (error) {
       next(error);
@@ -144,19 +144,19 @@ class NurseryService {
       const nurseryStore = new NurseryStore(req.db);
       const logsStore = new LogsStore(req.db);
       const uuid = req.params.uuid;
-      const nursery = req.body;
+      const body = req.body;
       const id = await nurseryStore.getByUUID(uuid);
       if (!id) {
         throw new NotFoundError('ID Not Found');
       }
-      const result = nurseryStore.update(uuid, nursery);
+      const result = nurseryStore.update(uuid, body);
       if (result === 0 ) {
         throw new NotFoundError('Data Not Found');
       }
       return res.status(200).send({
         success: true,
         data: {
-          uuid, ...nursery
+          uuid, ...body
         }
       });
     } catch (error) {

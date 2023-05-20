@@ -12,10 +12,10 @@ const router = express.Router();
 
 router.use(errorHandler);
 
-//Add nursery / Import
+//Add / Import
 router.post('/nursery', db, uploadFile, asyncHandler(nurseryService.add));
 
-//Get nursery
+//Get
 router.get('/nursery/get/:uuid', db, asyncHandler(nurseryService.get));
 
 //Graph and Table

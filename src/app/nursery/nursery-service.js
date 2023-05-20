@@ -1,21 +1,21 @@
-const NurseryStore = require('./nursery-store');
-const LogsStore = require('../logs/logs-store');
+const Store = require('./nursery-store');
+const Logs = require('../logs/logs-store');
 const XLSX = require('xlsx');
 const { DateTime } = require('luxon');
 const { NotFoundError, BadRequestError, FileUploadError, errorHandler } = require('../../middlewares/errors');
 
 class NurseryService {
-  constructor(nurseryStore) {
+  constructor(store) {
   }
 //ITO YUNG PANG IADJUST AND FIRST ROW OF DATA SA EXCEL
 // for (let i = 1; i < jsonData.length; i++) {
 // const row = jsonData[i];  
 
-  // Add Nursery
+  // Add
   async add(req, res, next) {
     try {
-      const nurseryStore = new NurseryStore(req.db);
-      const logsStore = new LogsStore(req.db);
+      const store = new Store(req.db);
+      const logs = new Logs(req.db);
       const body = req.body;
 
       // Check if a file was uploaded
@@ -84,7 +84,7 @@ class NurseryService {
           uniqueRows.set(rowKey, i + 1); // Add the row to the map with the current row number
 
           // Check if the row already exists in the database
-          const existingRow = await nurseryStore.getDuplicates(row);
+          const existingRow = await store.getDuplicates(row);
           
           if (!existingRow) {
             rowsToAdd.push(row); // Add the row to the rowsToAdd array
@@ -104,7 +104,7 @@ class NurseryService {
       // If no duplicate rows or existing rows, store all the rows in the database
       const rowsAdded = [];
       for (const row of rowsToAdd) {
-        await nurseryStore.add(row);
+        await store.add(row);
         rowsAdded.push(row);
       }
 
@@ -119,12 +119,12 @@ class NurseryService {
     }
   }
 
-  // Get Nursery
+  // Get 
   async get(req, res, next) {
     try {
-      const nurseryStore = new NurseryStore(req.db);
+      const store = new Store(req.db);
       const uuid = req.params.uuid;
-      const result = await nurseryStore.getByUUID(uuid);
+      const result = await store.getByUUID(uuid);
       if (!result) {
         throw new NotFoundError('Data Not Found');
       }
@@ -141,15 +141,15 @@ class NurseryService {
   // Update 
     async update(req, res, next) {
     try {
-      const nurseryStore = new NurseryStore(req.db);
+      const store = new Store(req.db);
       const logsStore = new LogsStore(req.db);
       const uuid = req.params.uuid;
       const body = req.body;
-      const id = await nurseryStore.getByUUID(uuid);
+      const id = await store.getByUUID(uuid);
       if (!id) {
         throw new NotFoundError('ID Not Found');
       }
-      const result = nurseryStore.update(uuid, body);
+      const result = store.update(uuid, body);
       if (result === 0 ) {
         throw new NotFoundError('Data Not Found');
       }
@@ -164,12 +164,12 @@ class NurseryService {
     }
   }
 
-  // Delete a nursery
+  // Delete 
   async delete(req, res, next) {
     try {
-      const nurseryStore = new NurseryStore(req.db);
+      const store = new Store(req.db);
       const uuid = req.params.uuid;
-      const result = await nurseryStore.delete(uuid);
+      const result = await store.delete(uuid);
       if (result === 0) {
         throw new NotFoundError('Data Not Found');
       }
@@ -186,21 +186,21 @@ class NurseryService {
   // Get Graph Data
   async getData(req, res, next) {
     try {
-      const nurseryStore = new NurseryStore(req.db);
+      const store = new Store(req.db);
       const region = req.query.region;
       const startDate = req.query.start;
       const endDate = req.query.end;
       const search = req.query.search;
       let table;
-      const monthGraph = await nurseryStore.getMonthGraph(region, startDate, endDate, search);    
-      const totalGraph = await nurseryStore.getTotalGraph(region, startDate, endDate, search);    
+      const monthGraph = await store.getMonthGraph(region, startDate, endDate, search);    
+      const totalGraph = await store.getTotalGraph(region, startDate, endDate, search);    
       if (!monthGraph && !totalGraph) {
         throw new NotFoundError('Data Not Found');
       }
       if (!region && !startDate && !endDate && !search) {
-        table = await nurseryStore.getAll();
+        table = await store.getAll();
       } else {
-        table = await nurseryStore.search(region, startDate, endDate, search);
+        table = await store.search(region, startDate, endDate, search);
       }
       return res.status(200).send({
         success: true,

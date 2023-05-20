@@ -1,6 +1,7 @@
 const { query } = require('express');
 const moment = require('moment-timezone');
 const nurseryTableConfig = require('../../configuration/nurseryTableConfig');
+const currentDate = moment().format('YYYY-MM-DD');
 
 class NurseryStore {
   constructor(db) {
@@ -97,30 +98,33 @@ class NurseryStore {
     return query;
   }
 
+
   async getMaxDate() {
-    const query = await this.db(this.table)
+    const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
       .first();
-  
-    return query.max_date;
+
+    const convertedResults = convertDatesToTimezone([result], ['max_date']);
+
+    return convertedResults[0].max_date;
   }
+
   
-
-
   async getTotalGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     let firstDate;
     let lastDate;
     const currentMonthRecordCount = await this.getCurrentMonthRecords(
-      firstDateOfMonth(),
-      lastDateOfMonth()
+      firstDateOfMonth(currentDate),
+      lastDateOfMonth(currentDate)
     );
     if (currentMonthRecordCount[0].count > 0) {
-      firstDate = firstDateOfMonth();
-      lastDate = lastDateOfMonth();
+      firstDate = firstDateOfMonth(currentDate);
+      lastDate = lastDateOfMonth(currentDate);
     } else {
       const maxDate = await this.getMaxDate();
+      console.log(maxDate);
       firstDate = firstDateOfMonth(maxDate);
       lastDate = lastDateOfMonth(maxDate);
     }
@@ -163,6 +167,7 @@ class NurseryStore {
       lastDate = lastDateOfMonth();
     } else {
       const maxDate = await this.getMaxDate();
+      console.log(maxDate);
       firstDate = firstDateOfMonth(maxDate);
       lastDate = lastDateOfMonth(maxDate);
     }
@@ -256,13 +261,14 @@ function convertDatesToTimezone(rows, dateFields) {
   });
 }
 
-function firstDateOfMonth() {
-  const firstDate = moment().startOf('month').format('YYYY-MM-DD');
+function firstDateOfMonth(date) {
+  const firstDate = moment(date).startOf('month').format('YYYY-MM-DD');
   return firstDate;
 }
 
-function lastDateOfMonth() {
-  const lastDate = moment().endOf('month').format('YYYY-MM-DD');
+
+function lastDateOfMonth(date) {
+  const lastDate = moment(date).endOf('month').format('YYYY-MM-DD');
   return lastDate;
 }
 

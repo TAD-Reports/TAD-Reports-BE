@@ -18,5 +18,5 @@ app.use('/', service);
 const PORT = process.env.PORT || 9000;
 
 app.listen(PORT, () => {
-  console.log(`TAD REPORT app listening on port ${PORT}`)
+  console.log(`TAD API listening on port ${PORT}`)
 })

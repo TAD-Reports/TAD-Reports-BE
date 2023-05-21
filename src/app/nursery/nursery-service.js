@@ -257,22 +257,32 @@ class NurseryService {
     }
 
     async getTemplate(req, res) {
-        const templatePath =
-            "C:\\Users\\devvi\\Documents\\GitHub\\TAD-Reports-BE\\src\\templates\\Nursery_Report (1).xlsx";
-
-        // Set the appropriate headers for the response
-        res.setHeader(
+        try {
+          const templateFileName = req.params.filename;
+          const templatePath = getTemplatePath(templateFileName);
+      
+          // Check if the template file exists
+          if (!templatePath) {
+            throw new Error("Template file not found");
+          }
+      
+          // Set the appropriate headers for the response
+          res.setHeader(
             "Content-disposition",
-            "attachment; filename=Nursery_Report.xlsx"
-        );
-        res.setHeader(
+            `attachment; filename=${templateFileName}.xlsx`
+          );
+          res.setHeader(
             "Content-type",
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        );
-
-        // Send the file in the response
-        res.sendFile(templatePath);
-    }
+          );
+      
+          // Send the file in the response
+          res.sendFile(templatePath);
+        } catch (error) {
+          console.error("Error occurred while downloading template:", error);
+          res.status(500).send("An error occurred while downloading the template");
+        }
+      }
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format
@@ -281,5 +291,20 @@ function convertExcelDate(excelDate) {
     const convertedDate = baseDate.plus({ days: excelDate - 2 });
     return convertedDate.toFormat("yyyy/MM/dd");
 }
+
+function getTemplatePath(templateFileName) {
+    // Define the mapping of template file names to their respective paths
+    const templatePaths = {
+      "Nursery_Report": "C:\\Users\\devvi\\Documents\\GitHub\\TAD-Reports-BE\\src\\templates\\Nursery_Report (1).xlsx",
+      // Add more template file names and paths here
+    };
+  
+    // Validate if the template file name exists in the mapping
+    if (!(templateFileName in templatePaths)) {
+      return null;
+    }
+  
+    return templatePaths[templateFileName];
+  }
 
 module.exports = NurseryService;

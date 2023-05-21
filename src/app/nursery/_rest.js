@@ -28,6 +28,6 @@ router.put("/nursery/update/:uuid", db, asyncHandler(nurseryService.update));
 router.delete("/nursery/delete/:uuid", db, asyncHandler(nurseryService.delete));
 
 //Download File Template
-router.get("/nursery/download/template", nurseryService.getTemplate);
+router.get("/nursery/download/template/:filename", nurseryService.getTemplate);
 
 module.exports = router;

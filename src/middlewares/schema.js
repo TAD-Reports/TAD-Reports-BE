@@ -19,6 +19,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('password').notNullable();
         table.string('firstname').notNullable();
         table.string('lastname').notNullable();
+        table.string('region').nullable();
         table.string('role').notNullable();
 
       }).createTable('nursery', (table) => {
@@ -115,6 +116,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         password: 'admin',
         firstname: 'Ray',
         lastname: 'Ray',
+        region: 'all',
         role: 'admin'
       });
 

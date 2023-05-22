@@ -21,7 +21,7 @@ class PmSurvivedStore {
       district: row['District'],
       municipality: row['Municipality'],
       barangay: row['Barangay'],
-      number_of_pm_available: row['Number of PM Available During Establishment'],
+      number_of_pm_available_during_establishment: row['Number of PM Available During Establishment'],
       variety: row['Variety'],
       date_received: row['Date Received'],
       number_of_pm_planted: row['Number of PM Planted'],

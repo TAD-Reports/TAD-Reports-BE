@@ -191,7 +191,6 @@ class NurseryStore {
 
   
   async search(region, startDate, endDate, search) {
-    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const query = this.db(this.table)

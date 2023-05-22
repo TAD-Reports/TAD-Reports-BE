@@ -73,6 +73,31 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         .inTable('users')
         .onDelete('CASCADE');
 
+      }).createTable('pmsurvived', (table) => {
+        table.increments('uuid').primary();
+        table.date('report_date').notNullable();
+        table.string('type_of_planting_materials').notNullable();
+        table.string('name_of_cooperator_individual').notNullable();
+        table.string('region').notNullable();
+        table.string('province').notNullable();
+        table.string('district').nullable();
+        table.string('municipality').notNullable();
+        table.string('barangay').notNullable();
+        table.integer('number_of_pm_available_during_establishment').notNullable();
+        table.string('variety').notNullable();
+        table.date('date_received').notNullable();
+        table.integer('number_of_pm_planted').notNullable();
+        table.integer('number_of_pm_survived').notNullable();
+        table.string('remarks').nullable();
+        table.integer('status').notNullable().defaultTo(1);
+        table.timestamps(true, true);
+        table.integer('imported_by')
+        .unsigned()
+        .notNullable()
+        .references('uuid')
+        .inTable('users')
+        .onDelete('CASCADE');
+
       }).createTable('classrooms', async(table) => {
         table.increments('uuid').primary();
         table.string('subject').notNullable();
@@ -110,6 +135,8 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         .inTable('classrooms')
         .onDelete('CASCADE');
       });
+
+
 
       await req.db('users').insert({
         username: 'admin',

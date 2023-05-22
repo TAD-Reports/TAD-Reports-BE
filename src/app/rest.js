@@ -5,6 +5,7 @@ router.use(require('./users/_rest'));
 router.use(require('./classrooms/_rest'));
 router.use(require('./nursery/_rest'));
 router.use(require('./distribution/_rest'));
+router.use(require('./pmsurvived/_rest'));
 //Add here
 
 router.use(require('./download/_rest'));

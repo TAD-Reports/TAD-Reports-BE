@@ -13,7 +13,7 @@ class DistributionStore {
     return await this.db(this.table).insert({
       report_date: row['Report Date'],
       type_of_planting_materials: row['Type of planting Materials'],
-      complete_name_of_cooperator_organization: row['Name of Cooperator/Individual'],
+      complete_name_of_cooperator_organization: row['Name of Cooperator/ Individual'],
       region: row['Region'],
       province: row['Province'],
       district: row['District'],
@@ -22,7 +22,7 @@ class DistributionStore {
       establishment_no_of_pm: row['No. of PM available during Establishment'],
       variety: row['Variety'],
       distributed_no_of_pm: row['No. of PM Distributed'],
-      recipient_name: row['Name of Recipient/Bene'],
+      recipient_name: row['Name of Recipient/ Bene'],
       beneficiary_address: row['Address eof Beneficiary'],
       gender: row['Gender'],
       category: row['Category'],

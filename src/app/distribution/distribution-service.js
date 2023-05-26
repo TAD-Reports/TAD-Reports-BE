@@ -36,9 +36,9 @@ class DistributionService {
       const rowsToAdd = [];
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
-        if (!row['Report Date'] || !row['Type of planting Materials'] || !row['Name of Cooperator/Individual'] || !row['Region'] || 
+        if (!row['Report Date'] || !row['Type of planting Materials'] || !row['Name of Cooperator/ Individual'] || !row['Region'] || 
             !row['Province'] || !row['Municipality'] || !row['Barangay'] || !row['No. of PM available during Establishment'] || 
-            !row['Variety'] || !row[' No. of PM Distributed'] || !row['Name of Recipient/Bene'] || !row['Address eof Beneficiary'] || 
+            !row['Variety'] || !row[' No. of PM Distributed'] || !row['Name of Recipient/ Bene'] || !row['Address eof Beneficiary'] || 
             !row['Gender'] || !row['Category']) {
           throw new BadRequestError(`Incomplete data found in Excel row ${i + headerRowIndex + 2} or below`);
         }

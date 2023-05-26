@@ -2,6 +2,7 @@ module.exports = {
   tableName: 'nursery',
   columnNames: {
     id: 'uuid',
+    nurseries: 'nurseries',
     reportDate: 'report_date',
     fundedBy: 'funded_by',
     region: 'region',

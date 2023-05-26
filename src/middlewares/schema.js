@@ -24,6 +24,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
 
       }).createTable('nursery', (table) => {
         table.increments('uuid').primary();
+        table.string('nurseries').notNullable();
         table.date('report_date').notNullable();
         table.string('funded_by').notNullable();
         table.string('region').notNullable();

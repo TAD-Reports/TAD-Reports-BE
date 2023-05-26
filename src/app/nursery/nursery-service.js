@@ -11,10 +11,7 @@ const {
 
 class NurseryService {
     constructor(store) {}
-    //ITO YUNG PANG IADJUST AND FIRST ROW OF DATA SA EXCEL
-    // for (let i = 1; i < jsonData.length; i++) {
-    // const row = jsonData[i];
-
+    
     // Add
     async add(req, res, next) {
         try {
@@ -65,6 +62,7 @@ class NurseryService {
                 // Check if any required fields are empty
                 if (
                     !row["Report Date"] ||
+                    !row["Nurseries"] ||
                     !row["Funded by"] ||
                     !row["Region"] ||
                     !row["Province"] ||

@@ -93,18 +93,22 @@ class NurseryStore {
   }
 
   async getMaxDate() {
-    const result = await this.db(this.table)
-      .max(`${this.cols.reportDate} as max_date`)
-      .first();
+    try {
+      const result = await this.db(this.table)
+        .max(`${this.cols.reportDate} as max_date`)
+        .first();
 
-    const convertedResults = convertDatesToTimezone([result], ['max_date']);
-
-    return convertedResults[0].max_date;
+      const convertedResults = convertDatesToTimezone([result], ['max_date']);
+      return convertedResults[0].max_date;
+    } catch (error) {
+      return error
+    }
   }
 
   
   async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
+    try {
+      const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
     const firstDate = firstDateOfMonth(maxDate);
@@ -132,6 +136,10 @@ class NurseryStore {
       });
     }
     return await query;
+    } catch(error) {
+      return error;
+    }
+    
   }
 
   

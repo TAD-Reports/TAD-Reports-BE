@@ -223,18 +223,23 @@ class NurseryService {
             const endDate = req.query.end;
             const search = req.query.search;
             let table;
-            const monthGraph = await store.getMonthGraph(
-                region,
-                startDate,
-                endDate,
-                search
-            );
-            const totalGraph = await store.getTotalGraph(
-                region,
-                startDate,
-                endDate,
-                search
-            );
+            try{
+                const monthGraph = await store.getMonthGraph(
+                    region,
+                    startDate,
+                    endDate,
+                    search
+                );
+                const totalGraph = await store.getTotalGraph(
+                    region,
+                    startDate,
+                    endDate,
+                    search
+                );
+            } catch(error) {
+                throw new Array;
+            }
+            
             if (!monthGraph && !totalGraph) {
                 throw new NotFoundError("Data Not Found");
             }
@@ -253,7 +258,6 @@ class NurseryService {
             next(error);
         }
     }
-
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format

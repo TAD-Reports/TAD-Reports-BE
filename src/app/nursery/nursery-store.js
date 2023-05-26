@@ -1,7 +1,6 @@
 const { query } = require('express');
 const moment = require('moment-timezone');
 const nurseryTableConfig = require('../../configuration/nurseryTableConfig');
-const currentDate = moment().format('YYYY-MM-DD');
 
 class NurseryStore {
   constructor(db) {
@@ -77,10 +76,8 @@ class NurseryStore {
   async getAll() {
     const results = await this.db(this.table)
       .select()
-      .orderBy([
-        { column: this.cols.region },
-        { column: this.cols.reportDate, order: 'desc' }
-      ]);
+      .orderBy(this.cols.region)
+      .orderBy(this.cols.reportDate);
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
     return convertedResults;
   }
@@ -91,28 +88,42 @@ class NurseryStore {
       .where(this.cols.id, uuid)
       .del();
   }
+  
 
-  async getMaxDate() {
-    try {
-      const result = await this.db(this.table)
-        .max(`${this.cols.reportDate} as max_date`)
-        .first();
-
-      const convertedResults = convertDatesToTimezone([result], ['max_date']);
-      return convertedResults[0].max_date;
-    } catch (error) {
-      return error
-    }
+  async getCurrentMonthRecords(startOfMonth, endOfMonth) {
+    const query = await this.db(this.table)
+      .count(`${this.cols.reportDate} as count`)
+      .whereBetween(this.cols.reportDate, [startOfMonth, endOfMonth]);
+    return query;
   }
 
+  async getMaxDate() {
+    const query = await this.db(this.table)
+      .max(`${this.cols.reportDate} as max_date`)
+      .first();
   
+    return query.max_date;
+  }
+  
+
+
   async getTotalGraph(region, startDate, endDate, search) {
-    try {
-      const formattedStartDate = formatDate(startDate);
+    const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
+    let firstDate;
+    let lastDate;
+    const currentMonthRecordCount = await this.getCurrentMonthRecords(
+      firstDateOfMonth(),
+      lastDateOfMonth()
+    );
+    if (currentMonthRecordCount[0].count > 0) {
+      firstDate = firstDateOfMonth();
+      lastDate = lastDateOfMonth();
+    } else {
+      const maxDate = await this.getMaxDate();
+      firstDate = firstDateOfMonth(maxDate);
+      lastDate = lastDateOfMonth(maxDate);
+    }
     const query = this.db(this.table)
       .select(`${this.cols.fundedBy} as name`)
       .sum(`${this.cols.area} as total`)
@@ -136,25 +147,31 @@ class NurseryStore {
       });
     }
     return await query;
-    } catch(error) {
-      return error;
-    }
-    
   }
 
-  
   async getMonthGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
+    let firstDate;
+    let lastDate;
+    const currentMonthRecordCount = await this.getCurrentMonthRecords(
+      firstDateOfMonth(),
+      lastDateOfMonth()
+    );
+    if (currentMonthRecordCount[0].count > 0) {
+      firstDate = firstDateOfMonth();
+      lastDate = lastDateOfMonth();
+    } else {
+      const maxDate = await this.getMaxDate();
+      firstDate = firstDateOfMonth(maxDate);
+      lastDate = lastDateOfMonth(maxDate);
+    }
     const query = this.db(this.table)
+      .select(this.cols.reportDate)
       .select(this.cols.fundedBy)
-      .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
-      .sum(`${this.cols.area} AS area`)
-      .groupBy(this.cols.fundedBy, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
-
+      .groupBy(this.cols.fundedBy)
+      .groupBy(this.cols.reportDate)
+      .select(this.db.raw(`SUM(${this.cols.area}) AS area`));
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -173,40 +190,30 @@ class NurseryStore {
         });
       });
     }
-
-    const formattedResult = await query.then((rows) => {
-      const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.name === curr.funded_by);
-        if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.area;
-        } else {
-          acc.push({
-            name: curr.funded_by,
-            months: {
-              [curr.month_year]: curr.area,
-            },
-          });
-        }
-        return acc;
-      }, []);
-
-      return formattedData;
+    const results = await query;
+    // Data manipulation to divide sum_area by month
+    const graphData = [];
+    results.forEach(row => {
+      const month = moment(row.report_date).format('MMMYYYY');
+      let existingData = graphData.find(item => item.name === row.funded_by);
+      if (!existingData) {
+        existingData = {
+          name: row.funded_by,
+          months: {},
+        };
+        graphData.push(existingData);
+      }
+      existingData.months[month] = row.area;
     });
-
-    return formattedResult;
+    return graphData;
   }
-
 
   
   async search(region, startDate, endDate, search) {
+    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    const query = this.db(this.table)
-      .select()
-      .orderBy([
-        { column: this.cols.region },
-        { column: this.cols.reportDate, order: 'desc' }
-      ]);
+    const query = this.db(this.table).select();
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } 
@@ -249,14 +256,13 @@ function convertDatesToTimezone(rows, dateFields) {
   });
 }
 
-function firstDateOfMonth(date) {
-  const firstDate = moment(date).startOf('month').format('YYYY-MM-DD');
+function firstDateOfMonth() {
+  const firstDate = moment().startOf('month').format('YYYY-MM-DD');
   return firstDate;
 }
 
-
-function lastDateOfMonth(date) {
-  const lastDate = moment(date).endOf('month').format('YYYY-MM-DD');
+function lastDateOfMonth() {
+  const lastDate = moment().endOf('month').format('YYYY-MM-DD');
   return lastDate;
 }
 

@@ -221,21 +221,22 @@ class NurseryService {
             const endDate = req.query.end;
             const search = req.query.search;
             let table;
-            const monthGraph = await store.getMonthGraph(
+            let monthGraph = [];
+            let totalGraph = [];
+            const hasData = await store.getAll();
+            if (hasData.length > 0) {
+              monthGraph = await store.getMonthGraph(
                 region,
                 startDate,
                 endDate,
                 search
-            );
-            const totalGraph = await store.getTotalGraph(
+              );
+              totalGraph = await store.getTotalGraph(
                 region,
                 startDate,
                 endDate,
                 search
-            );
-            if (!monthGraph && !totalGraph) {
-                monthGraph = [];
-                totalGraph = [];
+              );
             }
             if (!region && !startDate && !endDate && !search) {
                 table = await store.getAll();

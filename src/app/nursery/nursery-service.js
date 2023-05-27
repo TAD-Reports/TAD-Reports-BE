@@ -171,7 +171,7 @@ class NurseryService {
     async update(req, res, next) {
         try {
             const store = new Store(req.db);
-            const logsStore = new LogsStore(req.db);
+          const logs = new Logs(req.db);
             const uuid = req.params.uuid;
             const body = req.body;
             const id = await store.getByUUID(uuid);

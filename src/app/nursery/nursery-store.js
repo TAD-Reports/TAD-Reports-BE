@@ -12,8 +12,8 @@ class NurseryStore {
 
   async add(row) {
     return await this.db(this.table).insert({
-      nurseries: row['Nurseries'],
       report_date: row['Report Date'],
+      nurseries: row['Nurseries'],
       funded_by: row['Funded by'],
       region: row['Region'],
       province: row['Province'],
@@ -36,8 +36,8 @@ class NurseryStore {
     return await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        nurseries: body.nurseries,
         report_date: body.reportDate,
+        nurseries: body.nurseries,
         funded_by: body.fundedBy,
         region: body.region,
         province: body.province,

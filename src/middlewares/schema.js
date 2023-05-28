@@ -137,15 +137,13 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         .onDelete('CASCADE');
       });
 
-
-
       await req.db('users').insert({
-        username: 'admin',
-        password: 'admin',
+        username: 'superadmin',
+        password: '$2b$10$ISpxoyTQgNqOzUGNAU4r6.Fn9.q4NU8.YGJtkIBNhLeFEkKewqsya',
         firstname: 'Ray',
         lastname: 'Ray',
         region: 'all',
-        role: 'admin'
+        role: 'superadmin'
       });
 
 

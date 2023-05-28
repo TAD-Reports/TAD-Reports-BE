@@ -3,6 +3,37 @@ class UserStore {
     this.db = db;
   }
 
+  async getUsername(username) {
+    return await this.db('users')
+      .where('username', username)
+      .first();
+  }
+
+  async registerUser(body, hash) {
+    return await this.db('users')
+      .insert({
+        username: body.username,
+        password: hash,
+        firstname: body.firstname,
+        lastname: body.lastname,
+        region: body.region,
+        role: body.role
+      });
+  }
+
+  async updateUser(uuid, body, hash) {
+    return await this.db('users')
+      .where('UUID', uuid)
+      .update({
+        username: body.username,
+        password: hash,
+        firstname: body.firstname,
+        lastname: body.lastname,
+        region: body.region,
+        role: body.role
+      });
+  }
+
   async getUserByUUID(uuid) {
     return await this.db('users')
       .select()
@@ -13,24 +44,6 @@ class UserStore {
   async getAllUsers() {
     return await this.db('users')
       .select();
-  }
-
-  async getUsername(username) {
-    return await this.db('users')
-      .where('username', username)
-      .first();
-  }
-
-  async updateUser(uuid, user) {
-    return await this.db('users')
-      .where('UUID', uuid)
-      .update({
-        USERNAME: user.username,
-        PASSWORD: user.pasword,
-        FIRSTNAME: user.firstname,
-        LASTNAME: user.lastname,
-        ROLE: user.role
-      });
   }
 
   async deleteUser(uuid) {

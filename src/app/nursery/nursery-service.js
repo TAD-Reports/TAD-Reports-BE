@@ -100,6 +100,15 @@ class NurseryService {
           );
         }
 
+        // Validate the Region column
+        const regionValue = row["Region"];
+        if (!regionValue.startsWith("Regional Office")) {
+          throw new BadRequestError(
+            `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
+            }. The value should start with "Regional Office".`
+          );
+        }
+
         const rowKey = JSON.stringify(row); // Convert the row object to a string for comparison
 
         // Check if the row already exists in the uniqueRows map

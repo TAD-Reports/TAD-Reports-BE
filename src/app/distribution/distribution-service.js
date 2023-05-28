@@ -56,6 +56,13 @@ class DistributionService {
         if (row['Report Date'] && typeof row['Report Date'] === 'number') {
           row['Report Date'] = convertExcelDate(row['Report Date']);
         }
+        const regionValue = row["Region"];
+        if (!regionValue.startsWith("Regional Office")) {
+          throw new BadRequestError(
+            `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
+            }. The value should start with "Regional Office".`
+          );
+        }
         const rowKey = JSON.stringify(row);
         if (uniqueRows.has(rowKey)) {
           duplicateRows.push(i + 1);

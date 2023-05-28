@@ -10,7 +10,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
       return false;
     }
   }
-  
+
   const createTable = async () => {
     try {
       await req.db.schema.createTable('users', async (table) => {
@@ -41,38 +41,38 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
         table.integer('imported_by')
-        .unsigned()
-        .notNullable()
-        .references('uuid')
-        .inTable('users')
-        .onDelete('CASCADE');
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('CASCADE');
 
-        }).createTable('distribution', (table) => {
+      }).createTable('distribution', (table) => {
         table.increments('uuid').primary();
         table.date('report_date').notNullable();
         table.string('type_of_planting_materials').notNullable();
-        table.string('complete_name_of_cooperator_organization').notNullable();
+        table.string('name_of_cooperative_individual').notNullable();
         table.string('region').notNullable();
         table.string('province').notNullable();
         table.string('district').nullable();
         table.string('municipality').notNullable();
         table.string('barangay').notNullable();
-        table.integer('establishment_no_of_pm').notNullable();
+        table.integer('no_of_pm_available_during_establishment').notNullable();
         table.string('variety').notNullable();
-        table.integer('distributed_no_of_pm').notNullable();
-        table.string('recipient_name').notNullable();
-        table.string('beneficiary_address').notNullable();
+        table.integer('no_of_pm_distributed').notNullable();
+        table.string('name_of_recipient_bene').notNullable();
+        table.string('address_of_beneficiary').notNullable();
         table.string('gender').notNullable();
         table.string('category').notNullable();
         table.string('remarks').nullable();
         table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
         table.integer('imported_by')
-        .unsigned()
-        .notNullable()
-        .references('uuid')
-        .inTable('users')
-        .onDelete('CASCADE');
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('CASCADE');
 
       }).createTable('pmsurvived', (table) => {
         table.increments('uuid').primary();
@@ -93,23 +93,23 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
         table.integer('imported_by')
-        .unsigned()
-        .notNullable()
-        .references('uuid')
-        .inTable('users')
-        .onDelete('CASCADE');
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('CASCADE');
 
-      }).createTable('classrooms', async(table) => {
+      }).createTable('classrooms', async (table) => {
         table.increments('uuid').primary();
         table.string('subject').notNullable();
         table.string('description').notNullable();
         table.integer('status').notNullable().defaultTo(1);
         table.integer('created_by')
-        .unsigned()
-        .notNullable()
-        .references('uuid')
-        .inTable('users')
-        .onDelete('CASCADE');
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('CASCADE');
 
       }).createTable('logs', async (table) => {
         table.increments('log_id').primary();
@@ -124,17 +124,17 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.timestamp('add_classroom_at').nullable();
         table.timestamp('update_classroom_at').nullable();
         table.integer('user_id')
-        .unsigned()
-        .notNullable()
-        .references('uuid')
-        .inTable('users')
-        .onDelete('CASCADE');
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('CASCADE');
         table.integer('class_id')
-        .unsigned()
-        .nullable()
-        .references('uuid')
-        .inTable('classrooms')
-        .onDelete('CASCADE');
+          .unsigned()
+          .nullable()
+          .references('uuid')
+          .inTable('classrooms')
+          .onDelete('CASCADE');
       });
 
       await req.db('users').insert({
@@ -169,4 +169,4 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
   main();
 }));
 
-module.exports=userDao;
+module.exports = userDao;

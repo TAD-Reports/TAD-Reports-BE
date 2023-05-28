@@ -30,23 +30,33 @@ class DistributionService {
         }
       }
       const jsonData = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex });
-      const uniqueRows = new Map(); 
-      const duplicateRows = []; 
-      const existingRows = []; 
+      const uniqueRows = new Map();
+      const duplicateRows = [];
+      const existingRows = [];
       const rowsToAdd = [];
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
-        if (!row['Report Date'] || !row['Type of planting Materials'] || !row['Name of Cooperator/ Individual'] || !row['Region'] || 
-            !row['Province'] || !row['Municipality'] || !row['Barangay'] || !row['No. of PM available during Establishment'] || 
-            !row['Variety'] || !row[' No. of PM Distributed'] || !row['Name of Recipient/ Bene'] || !row['Address eof Beneficiary'] || 
-            !row['Gender'] || !row['Category']) {
+        if (!row['Report Date'] ||
+          !row['Type of Planting Materials'] ||
+          !row['Name of Cooperative/ Individual'] ||
+          !row['Region'] ||
+          !row['Province'] ||
+          !row['Municipality'] ||
+          !row['Barangay'] ||
+          !row['No. of PM available during Establishment'] ||
+          !row['Variety'] ||
+          !row['No. of PM Distributed'] ||
+          !row['Name of Recipient/ Bene'] ||
+          !row['Address of Beneficiary'] ||
+          !row['Gender'] ||
+          !row['Category']) {
           throw new BadRequestError(`Incomplete data found in Excel row ${i + headerRowIndex + 2} or below`);
         }
         row.imported_by = body.imported_by;
         if (row['Report Date'] && typeof row['Report Date'] === 'number') {
           row['Report Date'] = convertExcelDate(row['Report Date']);
         }
-        const rowKey = JSON.stringify(row); 
+        const rowKey = JSON.stringify(row);
         if (uniqueRows.has(rowKey)) {
           duplicateRows.push(i + 1);
         } else {
@@ -55,9 +65,9 @@ class DistributionService {
           if (!existingRow) {
             rowsToAdd.push(row);
           } else {
-            existingRows.push({ 
+            existingRows.push({
               success: false,
-              message: existingRow, rowNumber: i + 1 
+              message: existingRow, rowNumber: i + 1
             });
           }
         }
@@ -70,7 +80,7 @@ class DistributionService {
         await store.add(row);
         rowsAdded.push(row);
       }
-      return res.status(200).json({ 
+      return res.status(200).json({
         success: true,
         message: `${rowsAdded.length} rows are added from ${file.originalname} into the database`,
         duplicates: existingRows.length,
@@ -102,7 +112,7 @@ class DistributionService {
 
 
   // Update 
-    async update(req, res, next) {
+  async update(req, res, next) {
     try {
       const store = new Store(req.db);
       const logsStore = new LogsStore(req.db);
@@ -113,7 +123,7 @@ class DistributionService {
         throw new NotFoundError('ID Not Found');
       }
       const result = store.update(uuid, body);
-      if (result === 0 ) {
+      if (result === 0) {
         throw new NotFoundError('Data Not Found');
       }
       return res.status(200).send({
@@ -155,10 +165,22 @@ class DistributionService {
       const endDate = req.query.end;
       const search = req.query.search;
       let table;
-      const monthGraph = await store.getMonthGraph(region, startDate, endDate, search);    
-      const totalGraph = await store.getTotalGraph(region, startDate, endDate, search);    
-      if (!monthGraph && !totalGraph) {
-        throw new NotFoundError('Data Not Found');
+      let monthGraph = [];
+      let totalGraph = [];
+      const hasData = await store.getAll();
+      if (hasData.length > 0) {
+        monthGraph = await store.getMonthGraph(
+          region,
+          startDate,
+          endDate,
+          search
+        );
+        totalGraph = await store.getTotalGraph(
+          region,
+          startDate,
+          endDate,
+          search
+        );
       }
       if (!region && !startDate && !endDate && !search) {
         table = await store.getAll();
@@ -169,7 +191,7 @@ class DistributionService {
         success: true,
         monthGraph: monthGraph,
         totalGraph: totalGraph,
-        table: table
+        table: table,
       });
     } catch (error) {
       next(error);

@@ -21,6 +21,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('lastname').notNullable();
         table.string('region').nullable();
         table.string('role').notNullable();
+        table.integer('status').notNullable().defaultTo(1);
 
       }).createTable('nursery', (table) => {
         table.increments('uuid').primary();
@@ -38,14 +39,13 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('variety_used').notNullable();
         table.integer('period_of_moa').notNullable();
         table.string('remarks').nullable();
-        table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
         table.integer('imported_by')
           .unsigned()
           .notNullable()
           .references('uuid')
           .inTable('users')
-          .onDelete('CASCADE');
+          .onDelete('RESTRICT');
 
       }).createTable('distribution', (table) => {
         table.increments('uuid').primary();
@@ -65,14 +65,13 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('gender').notNullable();
         table.string('category').notNullable();
         table.string('remarks').nullable();
-        table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
         table.integer('imported_by')
           .unsigned()
           .notNullable()
           .references('uuid')
           .inTable('users')
-          .onDelete('CASCADE');
+          .onDelete('RESTRICT');
 
       }).createTable('pmsurvived', (table) => {
         table.increments('uuid').primary();
@@ -90,14 +89,36 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.integer('number_of_pm_planted').notNullable();
         table.integer('number_of_pm_survived').notNullable();
         table.string('remarks').nullable();
-        table.integer('status').notNullable().defaultTo(1);
         table.timestamps(true, true);
         table.integer('imported_by')
           .unsigned()
           .notNullable()
           .references('uuid')
           .inTable('users')
-          .onDelete('CASCADE');
+          .onDelete('RESTRICT');
+
+      }).createTable('logs', (table) => {
+        table.increments('log_id').primary();
+        table.integer('user_id').unsigned().references('uuid').inTable('users').onDelete('RESTRICT');
+        table.enu('module',
+          ['Authentication',
+            'Nursery',
+            'Distribution',
+            'PM Survived',
+            'Expantion and Rehabilitation',
+            'Cotton',
+            'Cocoon',
+            'Training',
+            'Iec Material',
+            'Expansion Under Coconut Project',
+            'Abaca Disease Management Project']).notNullable();
+        table.json('data').nullable();
+        table.string('action').notNullable();
+        table.string('ip_address').nullable();
+        table.string('operating_system').nullable();
+        table.string('session_id').nullable();
+        table.text('user_agent').nullable();
+        table.timestamps(true, true);
       });
 
       await req.db('users').insert({
@@ -106,7 +127,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         firstname: 'Ray',
         lastname: 'Ray',
         region: 'all',
-        role: 'sa'
+        role: 'superadmin'
       });
 
 

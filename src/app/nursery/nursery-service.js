@@ -8,6 +8,7 @@ const {
   FileUploadError,
   errorHandler,
 } = require("../../middlewares/errors");
+const moduleName = 'Nursery';
 
 class NurseryService {
   constructor(store) { }
@@ -18,6 +19,8 @@ class NurseryService {
       const store = new Store(req.db);
       const logs = new Logs(req.db);
       const body = req.body;
+      //const userId = req.auth.id; // Get user ID using auth
+      const userId = 1;
 
       // Check if a file was uploaded
       if (!req.file) {
@@ -143,6 +146,13 @@ class NurseryService {
       const rowsAdded = [];
       for (const row of rowsToAdd) {
         await store.add(row);
+        await logs.add({
+          uuid: userId,
+          module: moduleName,
+          data: row,
+          action: `imported a new row in Nursery table`,
+          ...body
+        })
         rowsAdded.push(row);
       }
 
@@ -190,6 +200,13 @@ class NurseryService {
       if (result === 0) {
         throw new NotFoundError("Data Not Found");
       }
+      logs.add({
+        uuid: userId,
+        module: moduleName,
+        data: result,
+        action: `updated a row in Nursery table`,
+        ...body
+      })
       return res.status(200).send({
         success: true,
         data: {
@@ -207,10 +224,18 @@ class NurseryService {
     try {
       const store = new Store(req.db);
       const uuid = req.params.uuid;
+      const body = req.body;
       const result = await store.delete(uuid);
       if (result === 0) {
         throw new NotFoundError("Data Not Found");
       }
+      logs.add({
+        uuid: userId,
+        module: moduleName,
+        data: result,
+        action: `deleted a row in Nursery table`,
+        ...body
+      })
       return res.status(202).send({
         success: true,
         message: "Deleted successfuly",

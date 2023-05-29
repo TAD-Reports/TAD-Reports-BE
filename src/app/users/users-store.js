@@ -9,6 +9,13 @@ class UserStore {
       .first();
   }
 
+  async getPassword(uuid) {
+    return await this.db('users')
+      .select(password)
+      .where('uuid', uuid)
+      .first();
+  }
+
   async registerUser(body, hash) {
     return await this.db('users')
       .insert({
@@ -30,7 +37,8 @@ class UserStore {
         firstname: body.firstname,
         lastname: body.lastname,
         region: body.region,
-        role: body.role
+        role: body.role,
+        status: body.status
       });
   }
 
@@ -46,11 +54,11 @@ class UserStore {
       .select();
   }
 
-  async deleteUser(uuid) {
-    return await this.db('users')
-      .where('UUID', uuid)
-      .del();
-  }
+  // async deleteUser(uuid) {
+  //   return await this.db('users')
+  //     .where('UUID', uuid)
+  //     .del();
+  // }
 }
 
 module.exports = UserStore;

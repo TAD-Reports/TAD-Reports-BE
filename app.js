@@ -5,7 +5,6 @@ const clearTerminal = () => {
 clearTerminal();
 //-------------------------------------------
 
-
 const express = require('express');
 const cors = require('cors');
 const service = require('./src/app/rest');

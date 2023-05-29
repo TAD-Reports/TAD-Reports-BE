@@ -26,7 +26,6 @@ class NurseryStore {
       variety_used: row['Variety Used'],
       period_of_moa: row['Period of MOA'],
       remarks: row['Remarks'],
-      status: 1, // Assuming 'status' is always 1
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
@@ -50,7 +49,6 @@ class NurseryStore {
         variety_used: body.variety,
         period_of_moa: body.moa,
         remarks: body.remarks,
-        status: body.status, 
       });
   }
 

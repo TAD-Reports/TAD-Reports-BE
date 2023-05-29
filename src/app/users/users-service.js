@@ -1,11 +1,16 @@
+require('dotenv').config();
 const Store = require('./users-store');
 const Logs = require('../logs/logs-store');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const jwtSecret = process.env.JWT_SECRET;
+
 const {
   NotFoundError,
   BadRequestError,
   errorHandler,
 } = require("../../middlewares/errors");
+const moduleName = 'Authentication';
 
 class UserService {
   constructor(store) {
@@ -16,29 +21,57 @@ class UserService {
     try {
       const store = new Store(req.db);
       const logs = new Logs(req.db);
-      const { username, password } = req.body;
-      if (!username || !password) {
+      // const { username, password } = req.body;
+      const body = req.body;
+      if (!body.username || !body.password) {
         throw new BadRequestError('Username and password are required');
       }
-      const user = await store.getUsername(username);
+      const user = await store.getUsername(body.username);
       if (!user) {
         throw new NotFoundError('Username not found');
       }
-      const validPassword = await bcrypt.compare(password, user.password);
+      const validPassword = await bcrypt.compare(body.password, user.password);
       if (!validPassword) {
         throw new BadRequestError('Invalid login credentials');
       }
       // Create a JWT token
-      // const token = jwt.sign({ id: user.uuid }, process.env.JWT_SECRET, {
-      //   expiresIn: 86400 // expires in 24 hours
-      // });
+      const token = jwt.sign({ id: user.uuid }, jwtSecret, {
+        expiresIn: 86400 // expires in 24 hours
+      });
+      logs.add({
+        uuid: user.uuid,
+        module: moduleName,
+        action: "signed in",
+        ...body
+      })
       return res.status(200).send({
         valid: true,
         message: 'Login successful',
         data: user,
-        // token: token
+        token: token
       });
     } catch (err) {
+      next(err);
+    }
+  }
+
+  async password(req, res, next) {
+    try {
+      const store = new Store(req.db);
+      const logs = new Logs(req.db);
+      const body = req.body;
+      const result = await store.getUserByUUID(uuid);
+      if (!result) {
+        throw new NotFoundError('User not found')
+      }
+      const validPassword = await bcrypt.compare(result.password, body.password);
+      if (!validPassword) {
+        throw new BadRequestError('Invalid password please try again');
+      }
+      return res.status(200).send({
+        success: true,
+      });
+    } catch(err) {
       next(err);
     }
   }
@@ -64,23 +97,23 @@ class UserService {
       // Insert the new user into the database
       const result = await store.registerUser(body, hash);
       const userId = result[0];
-      // Create a JWT token (optional if directly logged in after registration)
-      // const token = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-      //   expiresIn: 86400 // expires in 24 hours
-      // });
-
       // Create a new object without the "password" property
       const userData = { ...body };
       delete userData.password;
+      logs.add({
+        uuid: user.uuid,
+        module: moduleName,
+        action: "registered an account",
+        ...body
+      })
       return res.status(201).send({
         success: true,
         message: 'Registration Complete',
         data: {
           uuid: userId,
-          ...userData, 
+          ...userData,
           password: hash
         },
-        // token: token
       });
     } catch (err) {
       next(err);
@@ -101,8 +134,14 @@ class UserService {
       if (result === 0) {
         throw new NotFoundError('User not found');
       }
-      const userData = { ...body};
+      const userData = { ...body };
       delete userData.password;
+      logs.add({
+        uuid: user.uuid,
+        module: moduleName,
+        action: "updadted an account",
+        ...body
+      })
       return res.status(200).send({
         success: true,
         data: {
@@ -135,7 +174,7 @@ class UserService {
   }
 
 
-// Get all users
+  // Get all users
   async users(req, res, next) {
     try {
       const store = new Store(req.db);
@@ -154,22 +193,28 @@ class UserService {
 
 
   // Delete a user
-  async delete(req, res, next) {
-    try {
-      const store = new Store(req.db);
-      const uuid = req.params.uuid;
-      const result = await store.deleteUser(uuid);
-      if (result === 0) {
-        throw new NotFoundError('User not found');
-      }
-      return res.status(202).send({
-        success: true,
-        message: 'User has been deleted'
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
+  // async delete(req, res, next) {
+  //   try {
+  //     const store = new Store(req.db);
+  //     const uuid = req.params.uuid;
+  //     const result = await store.deleteUser(uuid);
+  //     if (result === 0) {
+  //       throw new NotFoundError('User not found');
+  //     }
+  //     logs.add({
+  //       uuid: user.uuid,
+  //       module: moduleName,
+  //       action: "deleted an account",
+  //       ...body
+  //     })
+  //     return res.status(202).send({
+  //       success: true,
+  //       message: 'User has been deleted'
+  //     });
+  //   } catch (err) {
+  //     next(err);
+  //   }
+  // }
 
 
 }

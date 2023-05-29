@@ -12,6 +12,15 @@ const router = express.Router();
 
 router.use(errorHandler);
 
+// User login
+router.post('/login', db, schema, asyncHandler(service.login));
+
+// Register new user
+router.post('/register', db, asyncHandler(service.register));
+
+// Get password for download Data
+router.post('/password', db, asyncHandler(service.password));
+
 // Get user by ID
 router.get('/user/:uuid', db, asyncHandler(service.user));
 
@@ -22,13 +31,7 @@ router.get('/users', db, asyncHandler(service.users));
 router.put('/user/:uuid', db, asyncHandler(service.update));
 
 // Delete a user
-router.delete('/user/:uuid', db, asyncHandler(service.delete));
-
-// Register new user
-router.post('/register', db, schema, asyncHandler(service.register));
-
-// User login
-router.post('/login', db, schema, asyncHandler(service.login));
+// router.delete('/user/:uuid', db, asyncHandler(service.delete));
 
 
 module.exports = router;

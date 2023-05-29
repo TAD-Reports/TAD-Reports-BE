@@ -8,5 +8,6 @@ router.use(require('./pmsurvived/_rest'));
 //Add here
 
 router.use(require('./download/_rest'));
+router.use(require('./logs/_rest'));
 
 module.exports = router;

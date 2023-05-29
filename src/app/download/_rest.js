@@ -10,6 +10,6 @@ const router = express.Router();
 router.use(errorHandler);
 
 //Download File Template
-router.get("/download/:filename", service.getTemplate);
+router.get("/download/:filename", db, asyncHandler(service.getTemplate));
 
 module.exports = router;

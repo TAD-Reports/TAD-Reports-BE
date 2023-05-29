@@ -9,13 +9,6 @@ class UserStore {
       .first();
   }
 
-  async getPassword(uuid) {
-    return await this.db('users')
-      .select(password)
-      .where('uuid', uuid)
-      .first();
-  }
-
   async registerUser(body, hash) {
     return await this.db('users')
       .insert({

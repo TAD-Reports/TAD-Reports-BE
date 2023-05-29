@@ -4,6 +4,7 @@ const Logs = require('../logs/logs-store');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const jwtSecret = process.env.JWT_SECRET;
+const userId = 1;
 
 const {
   NotFoundError,
@@ -43,7 +44,7 @@ class UserService {
         module: moduleName,
         action: "signed in",
         ...body
-      })
+      });
       return res.status(200).send({
         valid: true,
         message: 'Login successful',
@@ -58,9 +59,8 @@ class UserService {
   async password(req, res, next) {
     try {
       const store = new Store(req.db);
-      const logs = new Logs(req.db);
       const body = req.body;
-      const result = await store.getUserByUUID(uuid);
+      const result = await store.getUserByUUID(body.uuid);
       if (!result) {
         throw new NotFoundError('User not found')
       }
@@ -68,6 +68,7 @@ class UserService {
       if (!validPassword) {
         throw new BadRequestError('Invalid password please try again');
       }
+      
       return res.status(200).send({
         success: true,
       });
@@ -83,6 +84,7 @@ class UserService {
       const store = new Store(req.db);
       const logs = new Logs(req.db);
       const body = req.body;
+      //const userId = req.auth.id; // Get user ID using auth
       // Hash the password
       const hash = await bcrypt.hash(body.password, 10);
       // Validate input
@@ -96,21 +98,22 @@ class UserService {
       }
       // Insert the new user into the database
       const result = await store.registerUser(body, hash);
-      const userId = result[0];
+      const uuid = result[0];
       // Create a new object without the "password" property
       const userData = { ...body };
       delete userData.password;
       logs.add({
-        uuid: user.uuid,
+        uuid: userId,
         module: moduleName,
+        data: userData,
         action: "registered an account",
         ...body
-      })
+      });
       return res.status(201).send({
         success: true,
         message: 'Registration Complete',
         data: {
-          uuid: userId,
+          uuid: uuid,
           ...userData,
           password: hash
         },
@@ -128,6 +131,7 @@ class UserService {
       const logs = new Logs(req.db);
       const uuid = req.params.uuid;
       const body = req.body;
+      //const userId = req.auth.id; // Get user ID using auth
       // Hash the password
       const hash = await bcrypt.hash(body.password, 10);
       const result = store.updateUser(uuid, body, hash);
@@ -137,11 +141,12 @@ class UserService {
       const userData = { ...body };
       delete userData.password;
       logs.add({
-        uuid: user.uuid,
+        uuid: userId,
         module: moduleName,
+        data: userData,
         action: "updadted an account",
         ...body
-      })
+      });
       return res.status(200).send({
         success: true,
         data: {

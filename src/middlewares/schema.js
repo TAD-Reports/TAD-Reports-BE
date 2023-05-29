@@ -98,36 +98,11 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
           .references('uuid')
           .inTable('users')
           .onDelete('CASCADE');
-
-      }).createTable('logs', async (table) => {
-        table.increments('log_id').primary();
-        table.timestamp('created_acc_at').nullable();
-        table.timestamp('updated_acc_at').nullable();
-        table.timestamp('logged_in_at').nullable();
-        table.timestamp('logged_out_at').nullable();
-        table.timestamp('joined_room_at').nullable();
-        table.timestamp('left_room_at').nullable();
-        table.timestamp('created_quiz_at').nullable();
-        table.timestamp('submitted_at').nullable();
-        table.timestamp('add_classroom_at').nullable();
-        table.timestamp('update_classroom_at').nullable();
-        table.integer('user_id')
-          .unsigned()
-          .notNullable()
-          .references('uuid')
-          .inTable('users')
-          .onDelete('CASCADE');
-        table.integer('class_id')
-          .unsigned()
-          .nullable()
-          .references('uuid')
-          .inTable('classrooms')
-          .onDelete('CASCADE');
       });
 
       await req.db('users').insert({
         username: 'sa',
-        password: '$2b$10$5V8aLlAr3Xpoqnn0Ow1rXeLxOi5LGDoa9ap9Z3Kg8JcePZClbtY7y',
+        password: '$2b$10$aoZz7ydLZrckRUJivZApvOKw5g8JYKMl4blpDlGib48Io651w166G',
         firstname: 'Ray',
         lastname: 'Ray',
         region: 'all',

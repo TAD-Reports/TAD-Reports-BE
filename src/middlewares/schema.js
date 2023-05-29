@@ -99,18 +99,6 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
           .inTable('users')
           .onDelete('CASCADE');
 
-      }).createTable('classrooms', async (table) => {
-        table.increments('uuid').primary();
-        table.string('subject').notNullable();
-        table.string('description').notNullable();
-        table.integer('status').notNullable().defaultTo(1);
-        table.integer('created_by')
-          .unsigned()
-          .notNullable()
-          .references('uuid')
-          .inTable('users')
-          .onDelete('CASCADE');
-
       }).createTable('logs', async (table) => {
         table.increments('log_id').primary();
         table.timestamp('created_acc_at').nullable();
@@ -138,12 +126,12 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
       });
 
       await req.db('users').insert({
-        username: 'superadmin',
-        password: '$2b$10$ISpxoyTQgNqOzUGNAU4r6.Fn9.q4NU8.YGJtkIBNhLeFEkKewqsya',
+        username: 'sa',
+        password: '$2b$10$5V8aLlAr3Xpoqnn0Ow1rXeLxOi5LGDoa9ap9Z3Kg8JcePZClbtY7y',
         firstname: 'Ray',
         lastname: 'Ray',
         region: 'all',
-        role: 'superadmin'
+        role: 'sa'
       });
 
 

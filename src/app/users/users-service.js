@@ -12,7 +12,6 @@ class UserService {
   }
 
   // Login User
-  // Login User
   async login(req, res, next) {
     try {
       const store = new Store(req.db);
@@ -25,7 +24,6 @@ class UserService {
       if (!user) {
         throw new NotFoundError('Username not found');
       }
-      console.log({ password: password, storedPassword: user.password });
       const validPassword = await bcrypt.compare(password, user.password);
       if (!validPassword) {
         throw new BadRequestError('Invalid login credentials');

@@ -121,7 +121,7 @@ class NurseryService {
           uniqueRows.set(rowKey, i + 1); // Add the row to the map with the current row number
 
           // Check if the row already exists in the database
-          const existingRow = await store.getDuplicates(row);
+          const existingRow = await store.getExisting(row);
 
           if (!existingRow) {
             rowsToAdd.push(row); // Add the row to the rowsToAdd array
@@ -197,13 +197,14 @@ class NurseryService {
       if (!id) {
         throw new NotFoundError("ID Not Found");
       }
-      const result = store.update(uuid, body);
+      const result = await store.update(uuid, body);
       if (result === 0) {
         throw new NotFoundError("Data Not Found");
       }
       logs.add({
         uuid: userId,
         module: moduleName,
+        data: body,
         action: "updated a row in Nursery table",
         ...body
       });

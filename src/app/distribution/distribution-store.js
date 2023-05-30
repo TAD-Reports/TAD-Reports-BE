@@ -57,12 +57,15 @@ class DistributionStore {
       });
   }
 
-
-  async getDuplicates(row) {
+  
+  async getExisting(row) {
+    const excludedFields = ["District", "Remarks"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
       const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('.', '');
-      query.where(columnName, value);
+      if (!excludedFields.includes(column)) {
+        query.where(columnName, value);
+      }
     }
     const existingRows = await query.select('*');
     return existingRows.length > 0 ? existingRows : null;

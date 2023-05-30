@@ -32,7 +32,7 @@ class NurseryStore {
 
 
   async update(uuid, body) {
-    return await this.db(this.table)
+    const updatedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
         report_date: body.reportDate,
@@ -49,15 +49,21 @@ class NurseryStore {
         variety_used: body.variety,
         period_of_moa: body.moa,
         remarks: body.remarks,
-      });
+      })
+      .returning('*');
+    return updatedRows;
   }
 
 
-  async getDuplicates(row) {
+
+  async getExisting(row) {
+    const excludedFields = ["District", "Remarks"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
       const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
-      query.where(columnName, value);
+      if (!excludedFields.includes(column)) {
+        query.where(columnName, value);
+      }
     }
     const existingRows = await query.select('*');
     return existingRows.length > 0 ? existingRows : null;
@@ -68,8 +74,8 @@ class NurseryStore {
     const results = await this.db(this.table)
       .select()
       .where(this.cols.id, uuid);
-      const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
-      return convertedResults;
+    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
+    return convertedResults;
   }
 
 
@@ -185,7 +191,7 @@ class NurseryStore {
     return formattedResult;
   }
 
-  
+
   async search(region, startDate, endDate, search) {
     //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);

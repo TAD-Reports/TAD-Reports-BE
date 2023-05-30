@@ -68,7 +68,7 @@ class DistributionService {
           duplicateRows.push(i + 1);
         } else {
           uniqueRows.set(rowKey, i + 1);
-          const existingRow = await store.getDuplicates(row);
+          const existingRow = await store.getExisting(row);
           if (!existingRow) {
             rowsToAdd.push(row);
           } else {

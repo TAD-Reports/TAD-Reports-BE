@@ -3,6 +3,8 @@ const Logs = require('../logs/logs-store');
 const XLSX = require('xlsx');
 const { DateTime } = require('luxon');
 const { NotFoundError, BadRequestError, FileUploadError, errorHandler } = require('../../middlewares/errors');
+const moduleName = 'Distribution';
+const userId = 1;
 
 class DistributionService {
   constructor(store) {
@@ -13,6 +15,7 @@ class DistributionService {
       const store = new Store(req.db);
       const logs = new Logs(req.db);
       const body = req.body;
+      //const userId = req.auth.id; // Get user ID using auth
       if (!req.file) {
         throw new FileUploadError('No file uploaded');
       }
@@ -85,6 +88,13 @@ class DistributionService {
       const rowsAdded = [];
       for (const row of rowsToAdd) {
         await store.add(row);
+        await logs.add({
+          uuid: userId,
+          module: moduleName,
+          data: row,
+          action: "imported a new row in Distribution table",
+          ...body
+        });
         rowsAdded.push(row);
       }
       return res.status(200).json({
@@ -125,6 +135,7 @@ class DistributionService {
       const logsStore = new LogsStore(req.db);
       const uuid = req.params.uuid;
       const body = req.body;
+      //const userId = req.auth.id; // Get user ID using auth
       const id = await store.getByUUID(uuid);
       if (!id) {
         throw new NotFoundError('ID Not Found');
@@ -133,6 +144,13 @@ class DistributionService {
       if (result === 0) {
         throw new NotFoundError('Data Not Found');
       }
+      logs.add({
+        uuid: userId,
+        module: moduleName,
+        data: body,
+        action: "updated a row in Distribution table",
+        ...body
+      });
       return res.status(200).send({
         success: true,
         data: {
@@ -150,9 +168,16 @@ class DistributionService {
       const store = new Store(req.db);
       const uuid = req.params.uuid;
       const result = await store.delete(uuid);
+      //const userId = req.auth.id; // Get user ID using auth
       if (result === 0) {
         throw new NotFoundError('Data Not Found');
       }
+      logs.add({
+        uuid: userId,
+        module: moduleName,
+        action: "deleted a row in Distribution table",
+        ...body
+      });
       return res.status(202).send({
         success: true,
         message: 'Deleted successfuly'

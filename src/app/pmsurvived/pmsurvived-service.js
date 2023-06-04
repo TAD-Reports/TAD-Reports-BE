@@ -71,11 +71,11 @@ class PmSurvivedService {
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
-          !row["No of PM Available During Establishment"] ||
+          !row["No. of PM Available During Establishment"] ||
           !row["Variety"] ||
           !row["Date Received"] ||
-          !row["No of PM Planted"] ||
-          !row["No of PM Survived"]
+          !row["No. of PM Planted"] ||
+          !row["No. of PM Survived"]
         ) {
           throw new BadRequestError(
             `Incomplete data found in Excel row ${i + headerRowIndex + 2

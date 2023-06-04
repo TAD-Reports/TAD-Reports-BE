@@ -20,11 +20,11 @@ class PmSurvivedStore {
       district: row['District'],
       municipality: row['Municipality'],
       barangay: row['Barangay'],
-      no_of_pm_available_during_establishment: row['No of PM Available During Establishment'],
+      no_of_pm_available_during_establishment: row['No. of PM Available During Establishment'],
       variety: row['Variety'],
       date_received: row['Date Received'],
-      no_of_pm_planted: row['No of PM Planted'],
-      no_of_pm_survived: row['No of PM Survived'],
+      no_of_pm_planted: row['No. of PM Planted'],
+      no_of_pm_survived: row['No. of PM Survived'],
       remarks: row['Remarks'],
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
@@ -125,9 +125,9 @@ class PmSurvivedStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
-      .select(`${this.cols.fundedBy} as name`)
-      .sum(`${this.cols.area} as total`)
-      .groupBy(this.cols.fundedBy);
+      .select(`${this.cols.typeOfMaterials} as name`)
+      .sum(`${this.cols.pmSurvived} as total`)
+      .groupBy(this.cols.typeOfMaterials);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -157,10 +157,10 @@ class PmSurvivedStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
-      .select(this.cols.fundedBy)
+      .select(this.cols.typeOfMaterials)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
-      .sum(`${this.cols.area} AS area`)
-      .groupBy(this.cols.fundedBy, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
+      .sum(`${this.cols.pmSurvived} AS pm_survived`)
+      .groupBy(this.cols.typeOfMaterials, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
 
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
@@ -183,14 +183,14 @@ class PmSurvivedStore {
 
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.name === curr.funded_by);
+        const index = acc.findIndex((item) => item.name === curr.type_of_planting_materials);
         if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.area;
+          acc[index].months[curr.month_year] = curr.pm_survived;
         } else {
           acc.push({
-            name: curr.funded_by,
+            name: curr.type_of_planting_materials,
             months: {
-              [curr.month_year]: curr.area,
+              [curr.month_year]: curr.pm_survived,
             },
           });
         }
@@ -231,7 +231,7 @@ class PmSurvivedStore {
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.establishedDate]);
+    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.dateReceived]);
     return convertedResults;
   }
 }

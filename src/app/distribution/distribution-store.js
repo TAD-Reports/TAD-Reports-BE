@@ -229,7 +229,7 @@ class DistributionStore {
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.establishedDate]);
+    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate]);
     return convertedResults;
   }
 }

@@ -32,7 +32,8 @@ class NurseryStore {
 
 
   async update(uuid, body) {
-    const updatedRows = await this.db(this.table)
+    // Perform the update operation
+    await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
         report_date: body.reportDate,
@@ -49,11 +50,16 @@ class NurseryStore {
         variety_used: body.variety,
         period_of_moa: body.moa,
         remarks: body.remarks,
-      })
-      .returning('*');
+      });
+
+    // Fetch the updated rows
+    const updatedRows = await this.db(this.table)
+      .where(this.cols.id, uuid)
+      .select('*')
+      .first();
+
     return updatedRows;
   }
-
 
 
   async getExisting(row) {
@@ -91,11 +97,18 @@ class NurseryStore {
   }
 
 
+
   async delete(uuid) {
-    return await this.db(this.table)
+    const deletedRows = await this.db(this.table)
+      .where(this.cols.id, uuid)
+      .select('*')
+      .first();
+    await this.db(this.table)
       .where(this.cols.id, uuid)
       .del();
+    return deletedRows;
   }
+
 
   async getMaxDate() {
     const result = await this.db(this.table)

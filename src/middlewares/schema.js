@@ -83,11 +83,11 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('district').nullable();
         table.string('municipality').notNullable();
         table.string('barangay').notNullable();
-        table.integer('number_of_pm_available_during_establishment').notNullable();
+        table.integer('no_of_pm_available_during_establishment').notNullable();
         table.string('variety').notNullable();
         table.date('date_received').notNullable();
-        table.integer('number_of_pm_planted').notNullable();
-        table.integer('number_of_pm_survived').notNullable();
+        table.integer('no_of_pm_planted').notNullable();
+        table.integer('no_of_pm_survived').notNullable();
         table.string('remarks').nullable();
         table.timestamps(true, true);
         table.integer('imported_by')
@@ -112,8 +112,8 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
             'Iec Material',
             'Expansion Under Coconut Project',
             'Abaca Disease Management Project']).notNullable();
-        table.json('data').nullable();
         table.string('action').notNullable();
+        table.json('data').nullable();
         table.string('ip_address').nullable();
         table.string('operating_system').nullable();
         table.string('session_id').nullable();

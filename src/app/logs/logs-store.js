@@ -8,8 +8,8 @@ class LogsStore {
     await this.db('logs').insert({
       user_id: body.uuid,
       module: body.module,
-      data: body.data,
       action: body.action,
+      data: body.data,
       ip_address: body.ip,
       operating_system: body.os,
       session_id: body.sessionId,

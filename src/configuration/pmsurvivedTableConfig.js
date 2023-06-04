@@ -10,12 +10,11 @@ module.exports = {
       district: 'district',
       municipality: 'municipality',
       barangay: 'barangay',
-      pmestablishment: 'number_of_pm_available_during_establishment',
-      variety: 'area_in_hectares_ha',
+      pmestablishment: 'no_of_pm_available_during_establishment',
+      variety: 'variety',
       dateReceived: 'date_received',
-      pmPlanted: 'number_of_pm_planted',
-      pmSurvived: 'number_of_pm_survived',
-      stats: 'status',
+      pmPlanted: 'no_of_pm_planted',
+      pmSurvived: 'no_of_pm_survived',
       remarks: 'remarks',
       importedBy: 'imported_by'
       // Add other column names here if necessary

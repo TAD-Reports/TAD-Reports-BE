@@ -31,9 +31,8 @@ class DistributionStore {
     });
   }
 
-
-  async update(uuid, data) {
-    return await this.db(this.table)
+  async update(uuid, body) {
+    await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
         report_date: data.reportDate,
@@ -53,6 +52,13 @@ class DistributionStore {
         category: data.category,
         remarks: data.remarks,
       });
+
+    const updatedRows = await this.db(this.table)
+      .where(this.cols.id, uuid)
+      .select('*')
+      .first();
+
+    return updatedRows;
   }
 
   
@@ -90,11 +96,16 @@ class DistributionStore {
 
 
   async delete(uuid) {
-    return await this.db(this.table)
+    const deletedRows = await this.db(this.table)
+      .where(this.cols.id, uuid)
+      .select('*')
+      .first();
+    await this.db(this.table)
       .where(this.cols.id, uuid)
       .del();
+    return deletedRows;
   }
-  
+
 
   async getMaxDate() {
     const result = await this.db(this.table)

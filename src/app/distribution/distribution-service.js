@@ -92,7 +92,7 @@ class DistributionService {
           uuid: userId,
           module: moduleName,
           data: row,
-          action: "imported a new row in Distribution table",
+          action: `imported a new row in ${moduleName} table`,
           ...body
         });
         rowsAdded.push(row);
@@ -147,15 +147,13 @@ class DistributionService {
       logs.add({
         uuid: userId,
         module: moduleName,
-        data: body,
-        action: "updated a row in Distribution table",
+        action: `updated a row in ${moduleName} table`,
+        data: result,
         ...body
       });
       return res.status(200).send({
         success: true,
-        data: {
-          uuid, ...body
-        }
+        data: result,
       });
     } catch (error) {
       next(error);
@@ -175,7 +173,8 @@ class DistributionService {
       logs.add({
         uuid: userId,
         module: moduleName,
-        action: "deleted a row in Distribution table",
+        action: `deleted a row in ${moduleName} table`,
+        data: result,
         ...body
       });
       return res.status(202).send({

@@ -149,8 +149,8 @@ class NurseryService {
         await logs.add({
           uuid: userId,
           module: moduleName,
+          action: `imported a new row in ${moduleName} table`,
           data: row,
-          action: "imported a new row in Nursery table",
           ...body
         });
         rowsAdded.push(row);
@@ -203,17 +203,14 @@ class NurseryService {
       }
       logs.add({
         uuid: userId,
-        module: moduleName,
-        data: body,
-        action: "updated a row in Nursery table",
+        module: moduleName,        
+        action: `updated a row in ${moduleName} table`,
+        data: result,
         ...body
       });
       return res.status(200).send({
         success: true,
-        data: {
-          uuid,
-          ...body,
-        },
+        data: result,
       });
     } catch (error) {
       next(error);
@@ -235,7 +232,8 @@ class NurseryService {
       logs.add({
         uuid: userId,
         module: moduleName,
-        action: "deleted a row in Nursery table",
+        action: `deleted a row in ${moduleName} table`,
+        data: result,
         ...body
       });
       return res.status(202).send({

@@ -27,7 +27,6 @@ class DistributionStore {
       gender: row['Gender'],
       category: row['Category'],
       remarks: row['Remarks'],
-      status: 1, 
       imported_by: row.imported_by
     });
   }
@@ -53,7 +52,6 @@ class DistributionStore {
         gender: data.gender,
         category: data.category,
         remarks: data.remarks,
-        status: data.status,
       });
   }
 

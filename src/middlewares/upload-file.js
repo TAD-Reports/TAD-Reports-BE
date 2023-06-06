@@ -1,10 +1,11 @@
 const multer = require('multer');
+const { BadRequestError } = require('./errors');
 
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: function (req, file, cb) {
     if (file.mimetype !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-      return cb(new Error('Invalid file type. Only XLSX files are allowed.'))
+      return cb(new BadRequestError('Invalid file type. Only XLSX files are allowed.'))
     }
     cb(null, true)
   },

@@ -5,12 +5,9 @@ const schema = require("../../middlewares/schema");
 const asyncHandler = require("express-async-handler");
 const PmSurvivedService = require("./pmsurvived-service");
 const uploadFile = require("../../middlewares/upload-file");
-const { errorHandler } = require("../../middlewares/errors");
 
 const service = new PmSurvivedService();
 const router = express.Router();
-
-router.use(errorHandler);
 
 //Add / Import
 router.post("/pmsurvived", db, uploadFile, asyncHandler(service.add));

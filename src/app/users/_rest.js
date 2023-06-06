@@ -5,12 +5,9 @@ const schema = require('../../middlewares/schema');
 const asyncHandler = require('express-async-handler');
 const UserService = require('./users-service');
 const { restart } = require('nodemon');
-const { errorHandler } = require("../../middlewares/errors");
 
 const service = new UserService();
 const router = express.Router();
-
-router.use(errorHandler);
 
 // User login
 router.post('/login', db, schema, asyncHandler(service.login));

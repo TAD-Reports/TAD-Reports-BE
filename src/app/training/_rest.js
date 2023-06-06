@@ -5,12 +5,10 @@ const schema = require("../../middlewares/schema");
 const asyncHandler = require("express-async-handler");
 const TrainingService = require("./training-service");
 const uploadFile = require("../../middlewares/upload-file");
-const { errorHandler } = require("../../middlewares/errors");
 
 const service = new TrainingService();
 const router = express.Router();
 
-router.use(errorHandler);
 
 //Add / Import
 router.post("/training", db, uploadFile, asyncHandler(service.add));

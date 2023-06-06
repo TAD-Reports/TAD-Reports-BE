@@ -5,12 +5,9 @@ const schema = require('../../middlewares/schema');
 const asyncHandler = require('express-async-handler');
 const DistributionService = require('./distribution-service');
 const uploadFile = require('../../middlewares/upload-file');
-const { errorHandler } = require("../../middlewares/errors");
 
 const service = new DistributionService();
 const router = express.Router();
-
-router.use(errorHandler);
 
 //Add / Import
 router.post('/distribution', db, uploadFile, asyncHandler(service.add));

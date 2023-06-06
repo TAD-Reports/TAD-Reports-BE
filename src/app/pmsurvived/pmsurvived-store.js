@@ -1,12 +1,12 @@
 const { query } = require('express');
 const moment = require('moment-timezone');
-const nurseryTableConfig = require('../../configuration/nurseryTableConfig');
+const tableConfig = require('../../configuration/pmsurvivedTableConfig');
 
 class PmSurvivedStore {
   constructor(db) {
     this.db = db;
-    this.table = pmsurvivedTableConfig.tableName;
-    this.cols = pmsurvivedTableConfig.columnNames;
+    this.table = tableConfig.tableName;
+    this.cols = tableConfig.columnNames;
   }
 
 
@@ -14,13 +14,13 @@ class PmSurvivedStore {
     return await this.db(this.table).insert({
       report_date: row['Report Date'],
       type_of_planting_materials: row['Type of Planting Materials'],
-      name_of_cooperator_individual: row['Name of Cooperator/ Individual'],
+      name_of_cooperative_individual: row['Name of Cooperative/ Individual'],
       region: row['Region'],
       province: row['Province'],
       district: row['District'],
       municipality: row['Municipality'],
       barangay: row['Barangay'],
-      no_of_pm_available_during_establishment: row['No. of PM Available During Establishment'],
+      no_of_pm_available_during_establishment: row['No. of PM available during Establishment'],
       variety: row['Variety'],
       date_received: row['Date Received'],
       no_of_pm_planted: row['No. of PM Planted'],
@@ -37,7 +37,7 @@ class PmSurvivedStore {
       .update({
         report_date: body.reportDate,
         type_of_planting_materials: body.plantingMaterials,
-        name_of_cooperator_individual: body.cooperator,
+        name_of_cooperative_individual: body.cooperative,
         region: body.region,
         province: body.province,
         district: body.district,
@@ -125,9 +125,9 @@ class PmSurvivedStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
-      .select(`${this.cols.typeOfMaterials} as name`)
+      .select(`${this.cols.plantingMaterials} as name`)
       .sum(`${this.cols.pmSurvived} as total`)
-      .groupBy(this.cols.typeOfMaterials);
+      .groupBy(this.cols.plantingMaterials);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -157,10 +157,10 @@ class PmSurvivedStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
-      .select(this.cols.typeOfMaterials)
+      .select(this.cols.plantingMaterials)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
       .sum(`${this.cols.pmSurvived} AS pm_survived`)
-      .groupBy(this.cols.typeOfMaterials, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
+      .groupBy(this.cols.plantingMaterials, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
 
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);

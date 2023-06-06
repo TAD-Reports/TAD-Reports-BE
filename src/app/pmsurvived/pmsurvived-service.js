@@ -66,12 +66,12 @@ class PmSurvivedService {
         if (
           !row["Report Date"] ||
           !row["Type of Planting Materials"] ||
-          !row["Name of Cooperator/ Individual"] ||
+          !row["Name of Cooperative/ Individual"] ||
           !row["Region"] ||
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
-          !row["No. of PM Available During Establishment"] ||
+          !row["No. of PM available during Establishment"] ||
           !row["Variety"] ||
           !row["Date Received"] ||
           !row["No. of PM Planted"] ||

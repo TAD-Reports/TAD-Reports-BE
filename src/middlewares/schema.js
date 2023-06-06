@@ -77,7 +77,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.increments('uuid').primary();
         table.date('report_date').notNullable();
         table.string('type_of_planting_materials').notNullable();
-        table.string('name_of_cooperator_individual').notNullable();
+        table.string('name_of_cooperative_individual').notNullable();
         table.string('region').notNullable();
         table.string('province').notNullable();
         table.string('district').nullable();

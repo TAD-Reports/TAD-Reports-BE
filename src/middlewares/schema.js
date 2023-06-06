@@ -97,6 +97,30 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
           .inTable('users')
           .onDelete('RESTRICT');
 
+      }).createTable('training', (table) => {
+        table.increments('uuid').primary();
+        table.date('report_date').notNullable();
+        table.string('conduct_of_training').notNullable();
+        table.string('region').notNullable();
+        table.string('province').notNullable();
+        table.string('district').nullable();
+        table.string('municipality').notNullable();
+        table.string('barangay').notNullable();
+        table.string('gender').notNullable();
+        table.string('age_group').notNullable();
+        table.string('venue').notNullable();
+        table.date('start_date').notNullable();
+        table.date('end_date').notNullable();
+        table.integer('participants').notNullable();
+        table.string('remarks').nullable();
+        table.timestamps(true, true);
+        table.integer('imported_by')
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('RESTRICT');
+
       }).createTable('logs', (table) => {
         table.increments('log_id').primary();
         table.integer('user_id').unsigned().references('uuid').inTable('users').onDelete('RESTRICT');

@@ -65,17 +65,16 @@ class TrainingService {
         // Check if any required fields are empty
         if (
           !row["Report Date"] ||
-          !row["Nurseries"] ||
-          !row["Funded by"] ||
+          !row["Conduct of Training"] ||
           !row["Region"] ||
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
-          !row["Complete Name of Cooperator/ Organization"] ||
-          !row["Date Established"] ||
-          !row["Area in Hectares (ha)"] ||
-          !row["Variety Used"] ||
-          !row["Period of MOA"]
+          !row["Gender"] ||
+          !row["Age Group"] ||
+          !row["Venue"] ||
+          !row["Start Date"] ||
+          !row["End Date"]
         ) {
           throw new BadRequestError(
             `Incomplete data found in Excel row ${i + headerRowIndex + 2
@@ -95,13 +94,23 @@ class TrainingService {
         }
 
         if (
-          row["Date Established"] &&
-          typeof row["Date Established"] === "number"
+          row["Start Date"] &&
+          typeof row["Start Date"] === "number"
         ) {
-          row["Date Established"] = convertExcelDate(
-            row["Date Established"]
+          row["Start Date"] = convertExcelDate(
+            row["Start Date"]
           );
         }
+
+        if (
+          row["End Date"] &&
+          typeof row["End Date"] === "number"
+        ) {
+          row["End Date"] = convertExcelDate(
+            row["End Date"]
+          );
+        }
+
 
         // Validate the Region column
         const regionValue = row["Region"];
@@ -205,7 +214,7 @@ class TrainingService {
         uuid: userId,
         module: moduleName,
         data: body,
-        action: "updated a row in Nursery table",
+        action: "updated a row in Trainings table",
         ...body
       });
       return res.status(200).send({
@@ -235,7 +244,7 @@ class TrainingService {
       logs.add({
         uuid: userId,
         module: moduleName,
-        action: "deleted a row in Nursery table",
+        action: "deleted a row in Trainings table",
         ...body
       });
       return res.status(202).send({

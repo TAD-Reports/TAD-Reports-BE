@@ -9,7 +9,6 @@ class NurseryStore {
     this.cols = nurseryTableConfig.columnNames;
   }
 
-
   async add(row) {
     return await this.db(this.table).insert({
       report_date: row['Report Date'],

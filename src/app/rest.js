@@ -7,6 +7,7 @@ router.use(require('./distribution/_rest'));
 router.use(require('./pmsurvived/_rest'));
 router.use(require('./training/_rest'));
 router.use(require('./iecmaterials/_rest'));
+router.use(require('./cotton/_rest'));
 // router.use(require('./iecmaterials/_rest'));
 //Add here
 router.use(errorHandler);

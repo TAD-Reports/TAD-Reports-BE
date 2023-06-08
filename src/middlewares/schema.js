@@ -60,7 +60,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.integer('no_of_pm_available_during_establishment').notNullable();
         table.string('variety').notNullable();
         table.integer('no_of_pm_distributed').notNullable();
-        table.string('name_of_recipient_bene').notNullable();
+        table.string('name_of_recipient_beneficiary').notNullable();
         table.string('address_of_beneficiary').notNullable();
         table.string('gender').notNullable();
         table.string('category').notNullable();
@@ -134,6 +134,31 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
         table.string('gender').notNullable();
         table.string('category').notNullable();
         table.date('date_distributed').notNullable();
+        table.timestamps(true, true);
+        table.integer('imported_by')
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('RESTRICT');
+
+      }).createTable('cotton', (table) => {
+        table.increments('uuid').primary();
+        table.date('report_date').notNullable();
+        table.string('name_of_beneficiary').notNullable();
+        table.string('region').notNullable();
+        table.string('province').notNullable();
+        table.string('district').nullable();
+        table.string('municipality').notNullable();
+        table.string('barangay').notNullable();
+        table.string('gender').notNullable();
+        table.string('category').notNullable();
+        table.integer('quantity_of_cotton_seeds_given').notNullable();
+        table.integer('area_planted_ha').notNullable();
+        table.date('date_planted').notNullable();
+        table.integer('seed_cotton_harvested').notNullable();
+        table.string('variety').notNullable();
+        table.string('remarks').nullable();
         table.timestamps(true, true);
         table.integer('imported_by')
           .unsigned()

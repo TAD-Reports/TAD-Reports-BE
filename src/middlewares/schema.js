@@ -175,7 +175,7 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
             'Nursery',
             'Distribution',
             'PM Survived',
-            'Expantion and Rehabilitation',
+            'Expansion and Rehabilitation',
             'Cotton',
             'Cocoon',
             'Training',

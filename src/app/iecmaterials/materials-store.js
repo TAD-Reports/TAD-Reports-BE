@@ -119,9 +119,9 @@ class MaterialsStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
-      .select(`${this.cols.iecMaterialTitle} as name`)
+      .select(`${this.cols.titleOfIECMaterial} as name`)
       .sum(`${this.cols.noOfCopiesDistributed} as total`)
-      .groupBy(this.cols.iecMaterialTitle);
+      .groupBy(this.cols.titleOfIECMaterial);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -144,6 +144,7 @@ class MaterialsStore {
   }
 
 
+
   async getMonthGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
@@ -151,10 +152,10 @@ class MaterialsStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
-      .select(this.cols.iecMaterialTitle)
+      .select(this.cols.titleOfIECMaterial)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
-      .sum(`${this.cols.noOfCopiesDistributed} AS area`)
-      .groupBy(this.cols.iecMaterialTitle, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
+      .sum(`${this.cols.noOfCopiesDistributed} AS copies_distributed`)
+      .groupBy(this.cols.titleOfIECMaterial, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
 
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
@@ -177,14 +178,14 @@ class MaterialsStore {
 
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.name === curr.iecMaterialTitle);
+        const index = acc.findIndex((item) => item.name === curr.title_of_iec_material);
         if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.noOfCopiesDistributed;
+          acc[index].months[curr.month_year] = curr.copies_distributed;
         } else {
           acc.push({
-            name: curr.gender,
+            name: curr.title_of_iec_material,
             months: {
-              [curr.month_year]: curr.noOfCopiesDistributed,
+              [curr.month_year]: curr.copies_distributed,
             },
           });
         }
@@ -199,9 +200,11 @@ class MaterialsStore {
 
 
   async search(region, startDate, endDate, search) {
-    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
@@ -210,6 +213,8 @@ class MaterialsStore {
       ]);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);
@@ -225,7 +230,7 @@ class MaterialsStore {
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.startDate, this.cols.endDate]);
+    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.dateDistributed]);
     return convertedResults;
   }
 }

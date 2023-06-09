@@ -205,9 +205,11 @@ class NurseryStore {
 
 
   async search(region, startDate, endDate, search) {
-    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
@@ -216,6 +218,8 @@ class NurseryStore {
       ]);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);

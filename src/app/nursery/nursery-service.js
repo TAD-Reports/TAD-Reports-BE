@@ -136,7 +136,7 @@ class NurseryService {
       }
 
       if (duplicateRows.length > 0) {
-        throw new FileUploadError(
+        throw new BadRequestError(
           "Duplicate rows found in Excel",
           duplicateRows
         );
@@ -146,6 +146,7 @@ class NurseryService {
       const rowsAdded = [];
       for (const row of rowsToAdd) {
         await store.add(row);
+
         await logs.add({
           uuid: userId,
           module: moduleName,
@@ -180,8 +181,8 @@ class NurseryService {
         success: true,
         data: result,
       });
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   }
 
@@ -212,8 +213,8 @@ class NurseryService {
         success: true,
         data: result,
       });
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   }
 
@@ -240,8 +241,8 @@ class NurseryService {
         success: true,
         message: "Deleted successfuly",
       });
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   }
 
@@ -253,9 +254,9 @@ class NurseryService {
       const startDate = req.query.start;
       const endDate = req.query.end;
       const search = req.query.search;
-      let table;
       let monthGraph = [];
       let totalGraph = [];
+      let table = [];
       const hasData = await store.getAll();
       if (hasData.length > 0) {
         monthGraph = await store.getMonthGraph(
@@ -282,8 +283,8 @@ class NurseryService {
         totalGraph: totalGraph,
         table: table,
       });
-    } catch (error) {
-      next(error);
+    } catch (err) {
+      next(err);
     }
   }
 

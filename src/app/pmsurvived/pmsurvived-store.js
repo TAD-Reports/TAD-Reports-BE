@@ -35,19 +35,19 @@ class PmSurvivedStore {
     await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: body.reportDate,
-        type_of_planting_materials: body.plantingMaterials,
-        name_of_cooperative_individual: body.cooperative,
+        report_date: body.report_date,
+        type_of_planting_materials: body.type_of_planting_materials,
+        name_of_cooperative_individual: body.name_of_cooperative_individual,
         region: body.region,
         province: body.province,
         district: body.district,
         municipality: body.municipality,
         barangay: body.barangay,
-        no_of_pm_available_during_establishment: body.pmestablishment,
+        no_of_pm_available_during_establishment: body.no_of_pm_available_during_establishment,
         variety: body.variety,
-        date_received: body.dateReceived,
-        no_of_pm_planted: body.pmPlanted,
-        no_of_pm_survived: body.pmSurvived,
+        date_received: body.date_received,
+        no_of_pm_planted: body.no_of_pm_planted,
+        no_of_pm_survived: body.no_of_pm_survived,
         remarks: body.remarks,
       });
 
@@ -80,7 +80,7 @@ class PmSurvivedStore {
     const results = await this.db(this.table)
       .select()
       .where(this.cols.id, uuid);
-    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
+    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateReceived]);
     return convertedResults;
   }
 
@@ -92,7 +92,7 @@ class PmSurvivedStore {
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
-    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
+    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateReceived]);
     return convertedResults;
   }
 
@@ -256,6 +256,7 @@ function convertDatesToTimezone(rows, dateFields) {
   });
 }
 
+
 function firstDateOfMonth(date) {
   const firstDate = moment(date).startOf('month').format('YYYY-MM-DD');
   return firstDate;
@@ -266,7 +267,5 @@ function lastDateOfMonth(date) {
   const lastDate = moment(date).endOf('month').format('YYYY-MM-DD');
   return lastDate;
 }
-
-
 
 module.exports = PmSurvivedStore;

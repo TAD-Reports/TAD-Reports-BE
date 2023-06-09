@@ -201,13 +201,14 @@ class PmSurvivedService {
       if (result === 0) {
         throw new NotFoundError("Data Not Found");
       }
-      logs.add({
-        uuid: userId,
-        module: moduleName,
-        action: `updated a row in ${moduleName} table`,
-        data: result,
-        ...body
-      });
+      console.log(result);
+      // await logs.add({
+      //   uuid: userId,
+      //   module: moduleName,
+      //   action: `updated a row in ${moduleName} table`,
+      //   data: result,
+      //   ...body
+      // });
       return res.status(200).send({
         success: true,
         data: result,

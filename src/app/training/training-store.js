@@ -29,7 +29,6 @@ class TrainingStore {
     });
   }
 
-
   async update(uuid, body) {
     // Perform the update operation
     await this.db(this.table)
@@ -125,8 +124,8 @@ class TrainingStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
-      .select(`${this.cols.gender} as name`)
-      .sum(`${this.cols.participants} as total`)
+      .select(`${this.cols.gender} as gender`)
+      .sum(`${this.cols.participants} as participants`)
       .groupBy(this.cols.gender);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
@@ -159,7 +158,7 @@ class TrainingStore {
     const query = this.db(this.table)
       .select(this.cols.gender)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
-      .sum(`${this.cols.participants} AS area`)
+      .sum(`${this.cols.participants} AS total_participants`)
       .groupBy(this.cols.gender, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
 
     if (startDate && endDate) {
@@ -185,12 +184,12 @@ class TrainingStore {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.name === curr.gender);
         if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.participants;
+          acc[index].months[curr.month_year] = curr.total_participants;
         } else {
           acc.push({
             name: curr.gender,
             months: {
-              [curr.month_year]: curr.participants,
+              [curr.month_year]: curr.total_participants,
             },
           });
         }
@@ -205,9 +204,11 @@ class TrainingStore {
 
 
   async search(region, startDate, endDate, search) {
-    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
@@ -216,6 +217,8 @@ class TrainingStore {
       ]);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);

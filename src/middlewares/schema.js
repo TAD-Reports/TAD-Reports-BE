@@ -190,6 +190,29 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
           .inTable('users')
           .onDelete('RESTRICT');
 
+      }).createTable('expansionandrehabilitation', (table) => {
+        table.increments('uuid').primary();
+        table.date('report_date').notNullable();
+        table.string('name_of_fiber_crops').notNullable();
+        table.string('region').notNullable();
+        table.string('province').notNullable();
+        table.string('district').nullable();
+        table.string('municipality').notNullable();
+        table.string('barangay').notNullable();
+        table.string('name_of_beneficiary').notNullable();
+        table.string('gender').notNullable();
+        table.string('category').notNullable(); 
+        table.integer('area_planted_has').notNullable();
+        table.string('variety').notNullable();
+        table.string('source_of_pm').notNullable();
+        table.timestamps(true, true);
+        table.integer('imported_by')
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('RESTRICT');
+
       }).createTable('logs', (table) => {
         table.increments('log_id').primary();
         table.integer('user_id').unsigned().references('uuid').inTable('users').onDelete('RESTRICT');

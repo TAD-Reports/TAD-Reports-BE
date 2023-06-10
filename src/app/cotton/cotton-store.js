@@ -160,7 +160,7 @@ class CottonStore {
     const query = this.db(this.table)
       .select(this.cols.nameOfBeneficiary)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
-      .sum(`${this.cols.areaPlanted} AS area`)
+      .sum(`${this.cols.areaPlanted} AS area_planted`)
       .groupBy(this.cols.nameOfBeneficiary, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
 
     if (startDate && endDate) {
@@ -184,14 +184,14 @@ class CottonStore {
 
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.name === curr.nameOfBeneficiary);
+        const index = acc.findIndex((item) => item.name === curr.name_of_beneficiary);
         if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.areaPlanted;
+          acc[index].months[curr.month_year] = curr.area_planted;
         } else {
           acc.push({
-            name: curr.nameOfBeneficiary,
+            name: curr.name_of_beneficiary,
             months: {
-              [curr.month_year]: curr.areaPlanted,
+              [curr.month_year]: curr.area_planted,
             },
           });
         }
@@ -206,9 +206,11 @@ class CottonStore {
 
 
   async search(region, startDate, endDate, search) {
-    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
@@ -217,6 +219,8 @@ class CottonStore {
       ]);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);

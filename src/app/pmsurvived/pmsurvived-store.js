@@ -92,8 +92,14 @@ class PmSurvivedStore {
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
+
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateReceived]);
-    return convertedResults;
+
+    const columnNames = await this.db(this.table)
+      .columnInfo()
+      .then((columns) => Object.keys(columns));
+
+    return results.length > 0 ? convertedResults : { columnNames };
   }
 
 

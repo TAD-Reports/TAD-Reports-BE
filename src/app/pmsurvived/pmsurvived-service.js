@@ -105,10 +105,10 @@ class PmSurvivedService {
 
         // Validate the Region column
         const regionValue = row["Region"];
-        if (!regionValue.startsWith("Regional Office")) {
+        if (!regionValue.startsWith("Region ")) {
           throw new BadRequestError(
             `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
-            }. The value should start with "Regional Office".`
+            }. The value should start with Region (e.g., 'Region 1', or 'Region 13').`
           );
         }
 

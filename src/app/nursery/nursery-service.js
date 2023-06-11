@@ -193,7 +193,7 @@ class NurseryService {
       const logs = new Logs(req.db);
       const uuid = req.params.uuid;
       const body = req.body;
-      //const userId = req.auth.id; // Get user ID using auth
+      //const userId = req.auth.id; 
       const id = await store.getByUUID(uuid);
       if (!id) {
         throw new NotFoundError("ID Not Found");

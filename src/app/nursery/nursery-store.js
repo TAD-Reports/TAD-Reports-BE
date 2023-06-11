@@ -96,7 +96,6 @@ class NurseryStore {
   }
 
 
-
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
       .where(this.cols.id, uuid)

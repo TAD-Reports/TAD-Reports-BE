@@ -9,7 +9,6 @@ class PmSurvivedStore {
     this.cols = tableConfig.columnNames;
   }
 
-
   async add(row) {
     return await this.db(this.table).insert({
       report_date: row['Report Date'],
@@ -29,7 +28,6 @@ class PmSurvivedStore {
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
-
 
   async update(uuid, body) {
     await this.db(this.table)
@@ -60,8 +58,6 @@ class PmSurvivedStore {
     return updatedRows;
   }
 
-
-
   async getExisting(row) {
     const excludedFields = ["District", "Remarks"];
     const query = this.db(this.table);
@@ -75,7 +71,6 @@ class PmSurvivedStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
-
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -83,7 +78,6 @@ class PmSurvivedStore {
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateReceived]);
     return convertedResults;
   }
-
 
   async getAll() {
     const results = await this.db(this.table)
@@ -102,7 +96,6 @@ class PmSurvivedStore {
     return results.length > 0 ? convertedResults : { columnNames };
   }
 
-
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
@@ -114,7 +107,6 @@ class PmSurvivedStore {
     return deletedRows;
   }
 
-
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -122,7 +114,6 @@ class PmSurvivedStore {
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
     return convertedResults[0].max_date;
   }
-
 
   async getTotalGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -154,7 +145,6 @@ class PmSurvivedStore {
     }
     return await query;
   }
-
 
   async getMonthGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -208,7 +198,6 @@ class PmSurvivedStore {
 
     return formattedResult;
   }
-
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);

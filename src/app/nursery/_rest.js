@@ -15,7 +15,7 @@ router.post("/nursery", db, uploadFile, asyncHandler(service.add));
 //Get
 router.get("/nursery/get/:uuid", db, asyncHandler(service.get));
 
-//Graph and Table
+//Graph & Table
 router.get("/nursery/data", db, asyncHandler(service.getData));
 
 //Update

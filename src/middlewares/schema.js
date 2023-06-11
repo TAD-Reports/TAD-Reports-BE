@@ -213,6 +213,26 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
           .inTable('users')
           .onDelete('RESTRICT');
 
+      }).createTable('jobpositions', (table) => {
+        table.increments('uuid').primary();
+        table.string('position_title').notNullable();
+        table.string('plantilia_item_no').notNullable();
+        table.string('salary_job_pay_grade').notNullable();
+        table.integer('monthly_salary').notNullable();
+        table.string('education').nullable();
+        table.string('training').notNullable();
+        table.string('experience').notNullable();
+        table.string('eligibility').notNullable();
+        table.string('competency').Nullable();
+        table.string('place_of_assignment').notNullable();
+        table.timestamps(true, true);
+        table.integer('imported_by')
+          .unsigned()
+          .notNullable()
+          .references('uuid')
+          .inTable('users')
+          .onDelete('RESTRICT');
+
       }).createTable('logs', (table) => {
         table.increments('log_id').primary();
         table.integer('user_id').unsigned().references('uuid').inTable('users').onDelete('RESTRICT');
@@ -227,7 +247,8 @@ const userDao = (db, asyncHandler(async (req, res, next) => {
             'Training',
             'Iec Material',
             'Expansion Under Coconut Project',
-            'Abaca Disease Management Project']).notNullable();
+            'Abaca Disease Management Project',
+            'Job Positions']).notNullable();
         table.string('action').notNullable();
         table.json('data').nullable();
         table.string('ip_address').nullable();

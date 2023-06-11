@@ -3,11 +3,11 @@ const auth = require("../../middlewares/auth");
 const db = require("../../middlewares/db");
 const schema = require("../../middlewares/schema");
 const asyncHandler = require("express-async-handler");
-const JobPositionService = require("./applicationform-service");
+const Service = require("./applicationform-service");
 const uploadFile = require("../../middlewares/upload-file");
 
 
-const service = new JobPositionService();
+const service = new Service();
 const router = express.Router();
 
 //Add / Import

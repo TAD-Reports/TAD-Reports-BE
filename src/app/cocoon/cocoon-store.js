@@ -61,7 +61,7 @@ class CocoonStore {
 
 
   async getExisting(row) {
-    const excludedFields = ["District", "Remarks"];
+    const excludedFields = ["imported_by", "District", "Remarks"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
       const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '').replace('.','');

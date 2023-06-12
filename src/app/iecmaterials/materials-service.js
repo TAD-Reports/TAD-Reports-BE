@@ -48,7 +48,7 @@ class MaterialsService {
         if (
           !row["Report Date"] ||
           !row["Title of IEC Material"] ||
-          !row["No of Copies Distributed"] ||
+          !row["No. of Copies Distributed"] ||
           !row["Region"] ||
           !row["Province"] ||
           !row["Municipality"] ||
@@ -65,6 +65,9 @@ class MaterialsService {
         row.imported_by = body.imported_by;
         if (row['Report Date'] && typeof row['Report Date'] === 'number') {
           row['Report Date'] = convertExcelDate(row['Report Date']);
+        }
+        if (row['Date Distributed'] && typeof row['Date Distributed'] === 'number') {
+          row['Date Distributed'] = convertExcelDate(row['Date Distributed']);
         }
         const regionValue = row["Region"];
         if (!regionValue.startsWith("Region ")) {

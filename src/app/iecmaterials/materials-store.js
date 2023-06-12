@@ -14,7 +14,7 @@ class MaterialsStore {
     return await this.db(this.table).insert({
       report_date: row['Report Date'],
       title_of_iec_material: row['Title of IEC Material'],
-      no_of_copies_distributed: row['No of Copies Distributed'],
+      no_of_copies_distributed: row['No. of Copies Distributed'],
       region: row['Region'],
       province: row['Province'],
       district: row['District'],
@@ -60,7 +60,7 @@ class MaterialsStore {
     const excludedFields = ["imported_by", "District"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
-      const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
+      const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '').replace('.', '');
       if (!excludedFields.includes(column)) {
         query.where(columnName, value);
       }

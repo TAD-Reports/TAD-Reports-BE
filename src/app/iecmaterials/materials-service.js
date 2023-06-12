@@ -21,47 +21,29 @@ class MaterialsService {
       const logs = new Logs(req.db);
       const body = req.body;
       //const userId = req.auth.id; // Get user ID using auth
-
-      // Check if a file was uploaded
       if (!req.file) {
-        throw new FileUploadError("No file uploaded");
+        throw new FileUploadError('No file uploaded');
       }
-
-      // Get the uploaded file and read its contents
       const file = req.file;
       const fileContents = file.buffer;
-
-      // Read the Excel file
-      const workbook = XLSX.read(fileContents, { type: "buffer" });
-
-      // Assuming the data is in the first sheet (index 0)
+      const workbook = XLSX.read(fileContents, { type: 'buffer' });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-      // Find the header row index
       let headerRowIndex = 0;
-      const range = XLSX.utils.decode_range(sheet["!ref"]);
+      const range = XLSX.utils.decode_range(sheet['!ref']);
       for (let row = range.s.r; row <= range.e.r; row++) {
         const cell = sheet[XLSX.utils.encode_cell({ r: row, c: 0 })];
-        if (cell && cell.v === "Report Date") {
+        if (cell && cell.v === 'Report Date') {
           headerRowIndex = row;
           break;
         }
       }
-
-      // Convert the sheet data to JSON starting from the header row
-      const jsonData = XLSX.utils.sheet_to_json(sheet, {
-        range: headerRowIndex,
-      });
-
-      const uniqueRows = new Map(); // Map to store unique rows with their row numbers
-      const duplicateRows = []; // Array to store duplicate rows with their row numbers
-      const existingRows = []; // Array to store existing rows with their row numbers
-
-      // Iterate over each row in the JSON data
+      const jsonData = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex });
+      const uniqueRows = new Map();
+      const duplicateRows = [];
+      const existingRows = [];
       const rowsToAdd = [];
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
-
         // Check if any required fields are empty
         if (
           !row["Report Date"] ||
@@ -80,68 +62,36 @@ class MaterialsService {
             } or below`
           );
         }
-
-        // Add the import_by field from req.body
         row.imported_by = body.imported_by;
-
-        // Convert the date format
-        if (
-          row["Report Date"] &&
-          typeof row["Report Date"] === "number"
-        ) {
-          row["Report Date"] = convertExcelDate(row["Report Date"]);
+        if (row['Report Date'] && typeof row['Report Date'] === 'number') {
+          row['Report Date'] = convertExcelDate(row['Report Date']);
         }
-
-        if (
-          row["Date Distributed"] &&
-          typeof row["Date Distributed"] === "number"
-        ) {
-          row["Date Distributed"] = convertExcelDate(
-            row["Date Distributed"]
-          );
-        }
-
-
-        // Validate the Region column
         const regionValue = row["Region"];
-        if (!regionValue.startsWith("Regional Office")) {
+        if (!regionValue.startsWith("Region ")) {
           throw new BadRequestError(
             `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
-            }. The value should start with "Regional Office".`
+            }. The value should start with Region (e.g., 'Region 1', or 'Region 13').`
           );
         }
-
-        const rowKey = JSON.stringify(row); // Convert the row object to a string for comparison
-
-        // Check if the row already exists in the uniqueRows map
+        const rowKey = JSON.stringify(row);
         if (uniqueRows.has(rowKey)) {
-          duplicateRows.push(i + 1); // Add the duplicate row with row numbers to the array
+          duplicateRows.push(i + 1);
         } else {
-          uniqueRows.set(rowKey, i + 1); // Add the row to the map with the current row number
-
-          // Check if the row already exists in the database
+          uniqueRows.set(rowKey, i + 1);
           const existingRow = await store.getExisting(row);
-
           if (!existingRow) {
-            rowsToAdd.push(row); // Add the row to the rowsToAdd array
+            rowsToAdd.push(row);
           } else {
             existingRows.push({
               success: false,
-              message: existingRow,
-              rowNumber: i + 1,
-            }); // Add the existing row with row number to the array
+              message: existingRow, rowNumber: i + 1
+            });
           }
         }
       }
-
       if (duplicateRows.length > 0) {
-        throw new FileUploadError(
-          "Duplicate rows found in Excel",
-          duplicateRows
-        );
+        throw new FileUploadError("Duplicate rows found in Excel", duplicateRows);
       }
-
-      // If no duplicate rows or existing rows, store all the rows in the database
       const rowsAdded = [];
       for (const row of rowsToAdd) {
         await store.add(row);
@@ -149,17 +99,16 @@ class MaterialsService {
           uuid: userId,
           module: moduleName,
           data: row,
-          action: "imported a new row in IEC Materials table",
+          action: `imported a new row in ${moduleName} table`,
           ...body
         });
         rowsAdded.push(row);
       }
-
       return res.status(200).json({
         success: true,
         message: `${rowsAdded.length} rows are added from ${file.originalname} into the database`,
         duplicates: existingRows.length,
-        data: rowsAdded,
+        data: rowsAdded
       });
     } catch (err) {
       next(err);
@@ -170,14 +119,15 @@ class MaterialsService {
   async get(req, res, next) {
     try {
       const store = new Store(req.db);
+      const logs = new Logs(req.db);
       const uuid = req.params.uuid;
       const result = await store.getByUUID(uuid);
       if (!result) {
-        throw new NotFoundError("Data Not Found");
+        throw new NotFoundError('Data Not Found');
       }
       return res.status(200).send({
         success: true,
-        data: result,
+        data: result
       });
     } catch (error) {
       next(error);
@@ -194,25 +144,22 @@ class MaterialsService {
       //const userId = req.auth.id; // Get user ID using auth
       const id = await store.getByUUID(uuid);
       if (!id) {
-        throw new NotFoundError("ID Not Found");
+        throw new NotFoundError('ID Not Found');
       }
-      const result = await store.update(uuid, body);
+      const result = store.update(uuid, body);
       if (result === 0) {
-        throw new NotFoundError("Data Not Found");
+        throw new NotFoundError('Data Not Found');
       }
-      logs.add({
-        uuid: userId,
-        module: moduleName,
-        data: body,
-        action: "updated a row in Trainings table",
-        ...body
-      });
+      // logs.add({
+      //   uuid: userId,
+      //   module: moduleName,
+      //   action: `updated a row in ${moduleName} table`,
+      //   data: result,
+      //   ...body
+      // });
       return res.status(200).send({
         success: true,
-        data: {
-          uuid,
-          ...body,
-        },
+        data: result,
       });
     } catch (error) {
       next(error);
@@ -226,20 +173,21 @@ class MaterialsService {
       const logs = new Logs(req.db);
       const uuid = req.params.uuid;
       const body = req.body;
-      //const userId = req.auth.id; // Get user ID using auth
       const result = await store.delete(uuid);
+      //const userId = req.auth.id; // Get user ID using auth
       if (result === 0) {
-        throw new NotFoundError("Data Not Found");
+        throw new NotFoundError('Data Not Found');
       }
       logs.add({
         uuid: userId,
         module: moduleName,
-        action: "deleted a row in IEC Materials table",
+        action: `deleted a row in ${moduleName} table`,
+        data: result,
         ...body
       });
       return res.status(202).send({
         success: true,
-        message: "Deleted successfuly",
+        message: 'Deleted successfuly'
       });
     } catch (error) {
       next(error);
@@ -255,17 +203,10 @@ class MaterialsService {
       const endDate = req.query.end;
       const search = req.query.search;
       let table;
-      let monthGraph = [];
-      let totalGraph = [];
+      let graph = [];
       const hasData = await store.getAll();
       if (hasData.length > 0) {
-        monthGraph = await store.getMonthGraph(
-          region,
-          startDate,
-          endDate,
-          search
-        );
-        totalGraph = await store.getTotalGraph(
+        graph = await store.getGraph(
           region,
           startDate,
           endDate,
@@ -279,8 +220,7 @@ class MaterialsService {
       }
       return res.status(200).send({
         success: true,
-        monthGraph: monthGraph,
-        totalGraph: totalGraph,
+        graph: graph,
         table: table,
       });
     } catch (error) {

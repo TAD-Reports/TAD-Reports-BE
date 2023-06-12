@@ -223,6 +223,7 @@ class DistributionService {
       next(error);
     }
   }
+
 }
 
 function convertExcelDate(excelDate) {

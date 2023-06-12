@@ -20,24 +20,13 @@ class CottonService {
       const store = new Store(req.db);
       const logs = new Logs(req.db);
       const body = req.body;
-      //const userId = req.auth.id; // Get user ID using auth
-
-      // Check if a file was uploaded
       if (!req.file) {
         throw new FileUploadError("No file uploaded");
       }
-
-      // Get the uploaded file and read its contents
       const file = req.file;
       const fileContents = file.buffer;
-
-      // Read the Excel file
       const workbook = XLSX.read(fileContents, { type: "buffer" });
-
-      // Assuming the data is in the first sheet (index 0)
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
-
-      // Find the header row index
       let headerRowIndex = 0;
       const range = XLSX.utils.decode_range(sheet["!ref"]);
       for (let row = range.s.r; row <= range.e.r; row++) {
@@ -47,22 +36,15 @@ class CottonService {
           break;
         }
       }
-
-      // Convert the sheet data to JSON starting from the header row
       const jsonData = XLSX.utils.sheet_to_json(sheet, {
         range: headerRowIndex,
       });
-
-      const uniqueRows = new Map(); // Map to store unique rows with their row numbers
-      const duplicateRows = []; // Array to store duplicate rows with their row numbers
-      const existingRows = []; // Array to store existing rows with their row numbers
-
-      // Iterate over each row in the JSON data
+      const uniqueRows = new Map();
+      const duplicateRows = [];
+      const existingRows = [];
       const rowsToAdd = [];
       for (let i = 0; i < jsonData.length; i++) {
         const row = jsonData[i];
-
-        // Check if any required fields are empty
         if (
           !row["Report Date"] ||
           !row["Name of Beneficiary"] ||
@@ -83,18 +65,13 @@ class CottonService {
             } or below`
           );
         }
-
-        // Add the import_by field from req.body
         row.imported_by = body.imported_by;
-
-        // Convert the date format
         if (
           row["Report Date"] &&
           typeof row["Report Date"] === "number"
         ) {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
         }
-
         if (
           row["Date Planted"] &&
           typeof row["Date Planted"] === "number"
@@ -103,10 +80,8 @@ class CottonService {
             row["Date Planted"]
           );
         }
-
-        // Validate the Region column
         const regionValue = row["Region"];
-        if (!regionValue.startsWith("Regional Office")) {
+        if (!regionValue.startsWith("Region ")) {
           throw new BadRequestError(
             `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
             }. The value should start with "Regional Office".`
@@ -150,8 +125,8 @@ class CottonService {
         await logs.add({
           uuid: userId,
           module: moduleName,
-          action: `imported a new row in ${moduleName} table`,
           data: row,
+          action: `imported a new row in ${moduleName} table`,
           ...body
         });
         rowsAdded.push(row);
@@ -172,6 +147,7 @@ class CottonService {
   async get(req, res, next) {
     try {
       const store = new Store(req.db);
+      const logs = new Logs(req.db);
       const uuid = req.params.uuid;
       const result = await store.getByUUID(uuid);
       if (!result) {
@@ -202,13 +178,13 @@ class CottonService {
       if (result === 0) {
         throw new NotFoundError("Data Not Found");
       }
-      logs.add({
-        uuid: userId,
-        module: moduleName,
-        action: `updated a row in ${moduleName} table`,
-        data: result,
-        ...body
-      });
+      // logs.add({
+      //   uuid: userId,
+      //   module: moduleName,
+      //   action: `updated a row in ${moduleName} table`,
+      //   data: result,
+      //   ...body
+      // });
       return res.status(200).send({
         success: true,
         data: result,
@@ -225,10 +201,10 @@ class CottonService {
       const logs = new Logs(req.db);
       const uuid = req.params.uuid;
       const body = req.body;
-      //const userId = req.auth.id; // Get user ID using auth
       const result = await store.delete(uuid);
+      //const userId = req.auth.id; // Get user ID using auth
       if (result === 0) {
-        throw new NotFoundError("Data Not Found");
+        throw new NotFoundError('Data Not Found');
       }
       logs.add({
         uuid: userId,
@@ -239,7 +215,7 @@ class CottonService {
       });
       return res.status(202).send({
         success: true,
-        message: "Deleted successfuly",
+        message: 'Deleted successfuly'
       });
     } catch (error) {
       next(error);
@@ -255,17 +231,10 @@ class CottonService {
       const endDate = req.query.end;
       const search = req.query.search;
       let table;
-      let monthGraph = [];
-      let totalGraph = [];
+      let graph = [];
       const hasData = await store.getAll();
       if (hasData.length > 0) {
-        monthGraph = await store.getMonthGraph(
-          region,
-          startDate,
-          endDate,
-          search
-        );
-        totalGraph = await store.getTotalGraph(
+        graph = await store.getGraph(
           region,
           startDate,
           endDate,
@@ -279,8 +248,7 @@ class CottonService {
       }
       return res.status(200).send({
         success: true,
-        monthGraph: monthGraph,
-        totalGraph: totalGraph,
+        graph: graph,
         table: table,
       });
     } catch (error) {

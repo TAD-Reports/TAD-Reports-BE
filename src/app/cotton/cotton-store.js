@@ -52,7 +52,6 @@ class CottonStore {
         remarks: body.remarks,
       });
 
-    // Fetch the updated rows
     const updatedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
       .select('*')
@@ -122,39 +121,7 @@ class CottonStore {
   }
 
 
-  async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(`${this.cols.nameOfBeneficiary} as name`)
-      .sum(`${this.cols.areaPlanted} as total`)
-      .groupBy(this.cols.nameOfBeneficiary);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
-          });
-        });
-      });
-    }
-    return await query;
-  }
-
-
-  async getMonthGraph(region, startDate, endDate, search) {
+  async getGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
@@ -164,8 +131,12 @@ class CottonStore {
       .select(this.cols.nameOfBeneficiary)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
       .sum(`${this.cols.areaPlanted} AS area_planted`)
-      .groupBy(this.cols.nameOfBeneficiary, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
-
+      .groupBy(
+        this.cols.nameOfBeneficiary,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -184,7 +155,6 @@ class CottonStore {
         });
       });
     }
-
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.name === curr.name_of_beneficiary);
@@ -200,10 +170,13 @@ class CottonStore {
         }
         return acc;
       }, []);
-
-      return formattedData;
+      const updatedFormattedData = formattedData.map((item) => {
+        const months = item.months;
+        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, total } };
+      });
+      return updatedFormattedData;
     });
-
     return formattedResult;
   }
 
@@ -211,9 +184,6 @@ class CottonStore {
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
@@ -222,8 +192,6 @@ class CottonStore {
       ]);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);
@@ -242,6 +210,7 @@ class CottonStore {
     const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.datePlanted]);
     return convertedResults;
   }
+
 }
 
 function formatDate(dateString) {

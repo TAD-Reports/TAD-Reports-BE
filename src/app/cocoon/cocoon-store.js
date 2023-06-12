@@ -9,6 +9,7 @@ class CocoonStore {
     this.cols = TableConfig.columnNames;
   }
 
+
   async add(row) {
     return await this.db(this.table).insert({
       report_date: row['Report Date'],
@@ -28,12 +29,13 @@ class CocoonStore {
     });
   }
 
+
   async update(uuid, body) {
     // Perform the update operation
     await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: body.reportDate,
+        report_date: body.report_date,
         complete_name_of_cooperator_organization: body.complete_name_of_cooperator_organization,
         region: body.region,
         province: body.province,
@@ -57,6 +59,7 @@ class CocoonStore {
     return updatedRows;
   }
 
+
   async getExisting(row) {
     const excludedFields = ["District", "Remarks"];
     const query = this.db(this.table);
@@ -70,6 +73,7 @@ class CocoonStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
+
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -78,6 +82,7 @@ class CocoonStore {
     return convertedResults;
   }
 
+  
   async getAll() {
     const results = await this.db(this.table)
       .select()
@@ -92,6 +97,7 @@ class CocoonStore {
     return results.length > 0 ? convertedResults : { columnNames };
   }
 
+
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
@@ -103,6 +109,7 @@ class CocoonStore {
     return deletedRows;
   }
 
+
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -111,38 +118,8 @@ class CocoonStore {
     return convertedResults[0].max_date;
   }
 
-  async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(`${this.cols.category} as category`)
-      .sum(`${this.cols.totalProductionInKg} as total_production`)
-      .groupBy(this.cols.category);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
-          });
-        });
-      });
-    }
-    return await query;
-  }
 
-  async getMonthGraph(region, startDate, endDate, search) {
+  async getGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
@@ -152,8 +129,12 @@ class CocoonStore {
       .select(this.cols.category)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
       .sum(`${this.cols.totalProductionInKg} AS total_production`)
-      .groupBy(this.cols.category, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
-
+      .groupBy(
+        this.cols.category,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -172,7 +153,6 @@ class CocoonStore {
         });
       });
     }
-
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.name === curr.category);
@@ -188,19 +168,20 @@ class CocoonStore {
         }
         return acc;
       }, []);
-
-      return formattedData;
+      const updatedFormattedData = formattedData.map((item) => {
+        const months = item.months;
+        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, total } };
+      });
+      return updatedFormattedData;
     });
-
     return formattedResult;
   }
+
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
@@ -209,8 +190,6 @@ class CocoonStore {
       ]);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);
@@ -226,9 +205,10 @@ class CocoonStore {
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.dateOfRearing]);
+    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.dateOfRearing ]);
     return convertedResults;
   }
+
 }
 
 function formatDate(dateString) {

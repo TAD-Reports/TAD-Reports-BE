@@ -29,6 +29,7 @@ class TrainingStore {
     });
   }
 
+
   async update(uuid, body) {
     // Perform the update operation
     await this.db(this.table)
@@ -59,6 +60,7 @@ class TrainingStore {
     return updatedRows;
   }
 
+
   async getExisting(row) {
     const excludedFields = ["imported_by", "District", "Remarks"];
     const query = this.db(this.table);
@@ -72,6 +74,7 @@ class TrainingStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
+
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -79,6 +82,7 @@ class TrainingStore {
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.startDate, this.endDate]);
     return convertedResults;
   }
+
 
   async getAll() {
     const results = await this.db(this.table)
@@ -94,6 +98,7 @@ class TrainingStore {
     return results.length > 0 ? convertedResults : { columnNames };
   }
 
+
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
@@ -105,6 +110,7 @@ class TrainingStore {
     return deletedRows;
   }
 
+
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -113,38 +119,8 @@ class TrainingStore {
     return convertedResults[0].max_date;
   }
 
-  async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(`${this.cols.gender} as gender`)
-      .sum(`${this.cols.participants} as participants`)
-      .groupBy(this.cols.gender);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
-          });
-        });
-      });
-    }
-    return await query;
-  }
 
-  async getMonthGraph(region, startDate, endDate, search) {
+  async getGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
@@ -154,8 +130,12 @@ class TrainingStore {
       .select(this.cols.gender)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
       .sum(`${this.cols.participants} AS total_participants`)
-      .groupBy(this.cols.gender, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
-
+      .groupBy(
+        this.cols.gender,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -174,7 +154,6 @@ class TrainingStore {
         });
       });
     }
-
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.name === curr.gender);
@@ -190,19 +169,21 @@ class TrainingStore {
         }
         return acc;
       }, []);
-
-      return formattedData;
+      const updatedFormattedData = formattedData.map((item) => {
+        const months = item.months;
+        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, total } };
+      });
+      return updatedFormattedData;
     });
-
     return formattedResult;
   }
 
+
   async search(region, startDate, endDate, search) {
+    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
@@ -211,8 +192,6 @@ class TrainingStore {
       ]);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);
@@ -228,9 +207,10 @@ class TrainingStore {
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.startDate, this.cols.endDate]);
+    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.startDate, this.cols.endDate ]);
     return convertedResults;
   }
+  
 }
 
 function formatDate(dateString) {

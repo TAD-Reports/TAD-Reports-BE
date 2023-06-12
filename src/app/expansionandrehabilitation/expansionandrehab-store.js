@@ -8,6 +8,7 @@ class ExpansionStore {
     this.table = TableConfig.tableName;
     this.cols = TableConfig.columnNames;
   }
+  
 
   async add(row) {
     return await this.db(this.table).insert({
@@ -27,6 +28,7 @@ class ExpansionStore {
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
+
 
   async update(uuid, body) {
     // Perform the update operation
@@ -48,7 +50,6 @@ class ExpansionStore {
         source_of_pm: body.source_of_pm,
       });
 
-    // Fetch the updated rows
     const updatedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
       .select('*')
@@ -56,6 +57,7 @@ class ExpansionStore {
 
     return updatedRows;
   }
+
 
   async getExisting(row) {
     const excludedFields = ["imported_by", "District", "Remarks"];
@@ -70,6 +72,7 @@ class ExpansionStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
+
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -77,6 +80,7 @@ class ExpansionStore {
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate]);
     return convertedResults;
   }
+
 
   async getAll() {
     const results = await this.db(this.table)
@@ -92,6 +96,7 @@ class ExpansionStore {
     return results.length > 0 ? convertedResults : { columnNames };
   }
 
+
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
@@ -103,6 +108,7 @@ class ExpansionStore {
     return deletedRows;
   }
 
+
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -111,38 +117,8 @@ class ExpansionStore {
     return convertedResults[0].max_date;
   }
 
-  async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(`${this.cols.nameOfFiberCrops} as name`)
-      .sum(`${this.cols.areaPlantedHas} as total`)
-      .groupBy(this.cols.nameOfFiberCrops);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
-          });
-        });
-      });
-    }
-    return await query;
-  }
 
-  async getMonthGraph(region, startDate, endDate, search) {
+  async getGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
@@ -151,9 +127,13 @@ class ExpansionStore {
     const query = this.db(this.table)
       .select(this.cols.nameOfFiberCrops)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
-      .sum(`${this.cols.areaPlantedHas} AS area`)
-      .groupBy(this.cols.nameOfFiberCrops, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
-
+      .sum(`${this.cols.areaPlantedHas} AS area_planted`)
+      .groupBy(
+        this.cols.nameOfFiberCrops,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -172,35 +152,35 @@ class ExpansionStore {
         });
       });
     }
-
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.name === curr.name_of_fiber_crops);
         if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.area;
+          acc[index].months[curr.month_year] = curr.area_planted;
         } else {
           acc.push({
             name: curr.name_of_fiber_crops,
             months: {
-              [curr.month_year]: curr.area,
+              [curr.month_year]: curr.area_planted,
             },
           });
         }
         return acc;
       }, []);
-
-      return formattedData;
+      const updatedFormattedData = formattedData.map((item) => {
+        const months = item.months;
+        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, total } };
+      });
+      return updatedFormattedData;
     });
-
     return formattedResult;
   }
+
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
@@ -209,8 +189,6 @@ class ExpansionStore {
       ]);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);
@@ -229,6 +207,7 @@ class ExpansionStore {
     const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate]);
     return convertedResults;
   }
+
 }
 
 function formatDate(dateString) {

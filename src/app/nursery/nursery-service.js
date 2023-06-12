@@ -71,7 +71,7 @@ class NurseryService {
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
-          !row["Complete Name of Cooperator/ Organization"] ||
+          !row["Name of Cooperative/ Individual"] ||
           !row["Date Established"] ||
           !row["Area in Hectares (ha)"] ||
           !row["Variety Used"] ||
@@ -105,10 +105,10 @@ class NurseryService {
 
         // Validate the Region column
         const regionValue = row["Region"];
-        if (!regionValue.startsWith("Regional Office")) {
+        if (!regionValue.startsWith("Region ")) {
           throw new BadRequestError(
             `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
-            }. The value should start with "Regional Office".`
+            }. The value should start with Region (e.g., 'Region 1', or 'Region 13').`
           );
         }
 
@@ -254,18 +254,11 @@ class NurseryService {
       const startDate = req.query.start;
       const endDate = req.query.end;
       const search = req.query.search;
-      let monthGraph = [];
-      let totalGraph = [];
-      let table = [];
+      let table;
+      let graph = [];
       const hasData = await store.getAll();
       if (hasData.length > 0) {
-        monthGraph = await store.getMonthGraph(
-          region,
-          startDate,
-          endDate,
-          search
-        );
-        totalGraph = await store.getTotalGraph(
+        graph = await store.getGraph(
           region,
           startDate,
           endDate,
@@ -279,12 +272,11 @@ class NurseryService {
       }
       return res.status(200).send({
         success: true,
-        monthGraph: monthGraph,
-        totalGraph: totalGraph,
+        graph: graph,
         table: table,
       });
-    } catch (err) {
-      next(err);
+    } catch (error) {
+      next(error);
     }
   }
 

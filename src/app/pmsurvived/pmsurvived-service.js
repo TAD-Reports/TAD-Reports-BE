@@ -255,17 +255,10 @@ class PmSurvivedService {
       const endDate = req.query.end;
       const search = req.query.search;
       let table;
-      let monthGraph = [];
-      let totalGraph = [];
+      let graph = [];
       const hasData = await store.getAll();
       if (hasData.length > 0) {
-        monthGraph = await store.getMonthGraph(
-          region,
-          startDate,
-          endDate,
-          search
-        );
-        totalGraph = await store.getTotalGraph(
+        graph = await store.getGraph(
           region,
           startDate,
           endDate,
@@ -279,15 +272,14 @@ class PmSurvivedService {
       }
       return res.status(200).send({
         success: true,
-        monthGraph: monthGraph,
-        totalGraph: totalGraph,
+        graph: graph,
         table: table,
       });
     } catch (error) {
       next(error);
     }
   }
-
+  
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format

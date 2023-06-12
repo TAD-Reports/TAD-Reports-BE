@@ -19,7 +19,7 @@ class NurseryStore {
       district: row['District'],
       municipality: row['Municipality'],
       barangay: row['Barangay'],
-      complete_name_of_cooperator_organization: row['Complete Name of Cooperator/ Organization'],
+      name_of_cooperative_individual: row['Name of Cooperative/ Individual'],
       date_established: row['Date Established'],
       area_in_hectares_ha: row['Area in Hectares (ha)'],
       variety_used: row['Variety Used'],
@@ -43,7 +43,7 @@ class NurseryStore {
         district: body.district,
         municipality: body.municipality,
         barangay: body.barangay,
-        complete_name_of_cooperator_organization: body.cooperator,
+        name_of_cooperative_individual: body.coopName,
         date_established: body.establishedDate,
         area_in_hectares_ha: body.area,
         variety_used: body.variety,
@@ -92,7 +92,10 @@ class NurseryStore {
         { column: this.cols.reportDate, order: 'desc' }
       ]);
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
-    return convertedResults;
+    const columnNames = await this.db(this.table)
+      .columnInfo()
+      .then((columns) => Object.keys(columns));
+    return results.length > 0 ? convertedResults : { columnNames };
   }
 
 
@@ -117,39 +120,7 @@ class NurseryStore {
   }
 
 
-  async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(`${this.cols.fundedBy} as name`)
-      .sum(`${this.cols.area} as total`)
-      .groupBy(this.cols.fundedBy);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
-          });
-        });
-      });
-    }
-    return await query;
-  }
-
-
-  async getMonthGraph(region, startDate, endDate, search) {
+  async getGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
@@ -159,8 +130,12 @@ class NurseryStore {
       .select(this.cols.fundedBy)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
       .sum(`${this.cols.area} AS area`)
-      .groupBy(this.cols.fundedBy, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
-
+      .groupBy(
+        this.cols.fundedBy,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -179,7 +154,6 @@ class NurseryStore {
         });
       });
     }
-
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.name === curr.funded_by);
@@ -195,13 +169,16 @@ class NurseryStore {
         }
         return acc;
       }, []);
-
-      return formattedData;
+      const updatedFormattedData = formattedData.map((item) => {
+        const months = item.months;
+        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, total } };
+      });
+      return updatedFormattedData;
     });
-
     return formattedResult;
   }
-
+  
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);

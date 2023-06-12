@@ -10,7 +10,7 @@ module.exports = {
     district: 'district',
     municipality: 'municipality',
     barangay: 'barangay',
-    cooperator: 'complete_name_of_cooperator_organization',
+    coopName: 'name_of_cooperative_individual',
     establishedDate: 'date_established',
     area: 'area_in_hectares_ha',
     variety: 'variety_used',

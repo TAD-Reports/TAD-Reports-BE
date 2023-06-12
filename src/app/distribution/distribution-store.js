@@ -88,10 +88,15 @@ class DistributionStore {
   async getAll() {
     const results = await this.db(this.table)
       .select()
-      .orderBy(this.cols.region)
-      .orderBy(this.cols.reportDate);
+      .orderBy([
+        { column: this.cols.region },
+        { column: this.cols.reportDate, order: 'desc' }
+      ]);
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate]);
-    return convertedResults;
+    const columnNames = await this.db(this.table)
+      .columnInfo()
+      .then((columns) => Object.keys(columns));
+    return results.length > 0 ? convertedResults : { columnNames };
   }
 
 
@@ -116,39 +121,7 @@ class DistributionStore {
   }
 
 
-  async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(`${this.cols.typeOfMaterials} as name`)
-      .sum(`${this.cols.distributedPm} as total`)
-      .groupBy(this.cols.typeOfMaterials);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
-          });
-        });
-      });
-    }
-    return await query;
-  }
-
-
-  async getMonthGraph(region, startDate, endDate, search) {
+  async getGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
@@ -158,8 +131,12 @@ class DistributionStore {
       .select(this.cols.typeOfMaterials)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
       .sum(`${this.cols.distributedPm} AS distributed_pm`)
-      .groupBy(this.cols.typeOfMaterials, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
-
+      .groupBy(
+        this.cols.typeOfMaterials,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -178,7 +155,6 @@ class DistributionStore {
         });
       });
     }
-
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.name === curr.type_of_planting_materials);
@@ -194,10 +170,13 @@ class DistributionStore {
         }
         return acc;
       }, []);
-
-      return formattedData;
+      const updatedFormattedData = formattedData.map((item) => {
+        const months = item.months;
+        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, total } };
+      });
+      return updatedFormattedData;
     });
-
     return formattedResult;
   }
 

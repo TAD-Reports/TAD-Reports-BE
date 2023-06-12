@@ -9,6 +9,7 @@ class PmSurvivedStore {
     this.cols = tableConfig.columnNames;
   }
 
+
   async add(row) {
     return await this.db(this.table).insert({
       report_date: row['Report Date'],
@@ -29,6 +30,7 @@ class PmSurvivedStore {
     });
   }
 
+
   async update(uuid, body) {
     await this.db(this.table)
       .where(this.cols.id, uuid)
@@ -48,15 +50,14 @@ class PmSurvivedStore {
         no_of_pm_survived: body.no_of_pm_survived,
         remarks: body.remarks,
       });
-
     // Fetch the updated rows
     const updatedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
       .select('*')
       .first();
-
     return updatedRows;
   }
+
 
   async getExisting(row) {
     const excludedFields = ["District", "Remarks"];
@@ -71,6 +72,7 @@ class PmSurvivedStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
+
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -79,6 +81,7 @@ class PmSurvivedStore {
     return convertedResults;
   }
 
+
   async getAll() {
     const results = await this.db(this.table)
       .select()
@@ -86,15 +89,13 @@ class PmSurvivedStore {
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
-
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateReceived]);
-
     const columnNames = await this.db(this.table)
       .columnInfo()
       .then((columns) => Object.keys(columns));
-
     return results.length > 0 ? convertedResults : { columnNames };
   }
+
 
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
@@ -107,6 +108,7 @@ class PmSurvivedStore {
     return deletedRows;
   }
 
+
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -115,38 +117,8 @@ class PmSurvivedStore {
     return convertedResults[0].max_date;
   }
 
-  async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(`${this.cols.plantingMaterials} as name`)
-      .sum(`${this.cols.pmSurvived} as total`)
-      .groupBy(this.cols.plantingMaterials);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
-          });
-        });
-      });
-    }
-    return await query;
-  }
 
-  async getMonthGraph(region, startDate, endDate, search) {
+  async getGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
@@ -156,8 +128,12 @@ class PmSurvivedStore {
       .select(this.cols.plantingMaterials)
       .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
       .sum(`${this.cols.pmSurvived} AS pm_survived`)
-      .groupBy(this.cols.plantingMaterials, this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`));
-
+      .groupBy(
+        this.cols.plantingMaterials,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {
@@ -176,7 +152,6 @@ class PmSurvivedStore {
         });
       });
     }
-
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex((item) => item.name === curr.type_of_planting_materials);
@@ -192,12 +167,16 @@ class PmSurvivedStore {
         }
         return acc;
       }, []);
-
-      return formattedData;
+      const updatedFormattedData = formattedData.map((item) => {
+        const months = item.months;
+        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, total } };
+      });
+      return updatedFormattedData;
     });
-
     return formattedResult;
   }
+
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -235,6 +214,7 @@ class PmSurvivedStore {
   }
 }
 
+
 function formatDate(dateString) {
   const date = moment(dateString, 'YYYY/MM/DD', true); // Use moment.js to parse the date
   if (!date.isValid()) {
@@ -243,6 +223,7 @@ function formatDate(dateString) {
   }
   return date.format('YYYY-MM-DD');
 }
+
 
 function convertDatesToTimezone(rows, dateFields) {
   return rows.map(row => {

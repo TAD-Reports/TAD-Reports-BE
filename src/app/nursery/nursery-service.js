@@ -172,6 +172,7 @@ class NurseryService {
   async get(req, res, next) {
     try {
       const store = new Store(req.db);
+      const logs = new Logs(req.db);
       const uuid = req.params.uuid;
       const result = await store.getByUUID(uuid);
       if (!result) {
@@ -202,13 +203,13 @@ class NurseryService {
       if (result === 0) {
         throw new NotFoundError("Data Not Found");
       }
-      logs.add({
-        uuid: userId,
-        module: moduleName,        
-        action: `updated a row in ${moduleName} table`,
-        data: result,
-        ...body
-      });
+      // logs.add({
+      //   uuid: userId,
+      //   module: moduleName,        
+      //   action: `updated a row in ${moduleName} table`,
+      //   data: result,
+      //   ...body
+      // });
       return res.status(200).send({
         success: true,
         data: result,

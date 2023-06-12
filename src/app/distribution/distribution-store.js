@@ -35,22 +35,22 @@ class DistributionStore {
     await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: data.report_date,
-        type_of_planting_materials: data.type_of_planting_materials,
-        name_of_cooperative_individual: data.name_of_cooperative_individual,
-        region: data.region,
-        province: data.province,
-        district: data.district,
-        municipality: data.municipality,
-        barangay: data.barangay,
-        no_of_pm_available_during_establishment: data.no_of_pm_available_during_establishment,
-        variety: data.variety,
-        no_of_pm_distributed: data.no_of_pm_distributed,
-        name_of_recipient_bene: data.name_of_recipient_bene,
-        address_of_beneficiary: data.address_of_beneficiary,
-        gender: data.gender,
-        category: data.category,
-        remarks: data.remarks,
+        report_date: body.report_date,
+        type_of_planting_materials: body.type_of_planting_materials,
+        name_of_cooperative_individual: body.name_of_cooperative_individual,
+        region: body.region,
+        province: body.province,
+        district: body.district,
+        municipality: body.municipality,
+        barangay: body.barangay,
+        no_of_pm_available_during_establishment: body.no_of_pm_available_during_establishment,
+        variety: body.variety,
+        no_of_pm_distributed: body.no_of_pm_distributed,
+        name_of_recipient_bene: body.name_of_recipient_bene,
+        address_of_beneficiary: body.address_of_beneficiary,
+        gender: body.gender,
+        category: body.category,
+        remarks: body.remarks,
       });
 
     const updatedRows = await this.db(this.table)

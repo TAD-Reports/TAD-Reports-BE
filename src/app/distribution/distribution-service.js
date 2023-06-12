@@ -167,6 +167,7 @@ class DistributionService {
       const store = new Store(req.db);
       const logs = new Logs(req.db);
       const uuid = req.params.uuid;
+      const body = req.body;
       const result = await store.delete(uuid);
       //const userId = req.auth.id; // Get user ID using auth
       if (result === 0) {

@@ -35,19 +35,19 @@ class NurseryStore {
     await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: body.reportDate,
+        report_date: body.report_date,
         nurseries: body.nurseries,
-        funded_by: body.fundedBy,
+        funded_by: body.funded_by,
         region: body.region,
         province: body.province,
         district: body.district,
         municipality: body.municipality,
         barangay: body.barangay,
-        name_of_cooperative_individual: body.coopName,
-        date_established: body.establishedDate,
-        area_in_hectares_ha: body.area,
-        variety_used: body.variety,
-        period_of_moa: body.moa,
+        name_of_cooperative_individual: body.name_of_cooperative_individual,
+        date_established: body.date_established,
+        area_in_hectares_ha: body.area_in_hectares_ha,
+        variety_used: body.variety_used,
+        period_of_moa: body.period_of_moa,
         remarks: body.remarks,
       });
 

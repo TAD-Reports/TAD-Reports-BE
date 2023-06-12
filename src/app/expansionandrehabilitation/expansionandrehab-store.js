@@ -28,25 +28,24 @@ class ExpansionStore {
     });
   }
 
-
   async update(uuid, body) {
     // Perform the update operation
     await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: body.reportDate,
-        name_of_fiber_crops: body.nameOfFiberCrops,
+        report_date: body.report_date,
+        name_of_fiber_crops: body.name_of_fiber_crops,
         region: body.region,
         province: body.province,
         district: body.district,
         municipality: body.municipality,
         barangay: body.barangay,
-        name_of_beneficiary: body.nameOfBeneficiary,
+        name_of_beneficiary: body.name_of_beneficiary,
         gender: body.gender,
         category: body.category,
-        area_planted_has: body.areaPlantedHas,
+        area_planted_has: body.area_planted_has,
         variety: body.variety,
-        source_of_pm: body.sourceOfPm,
+        source_of_pm: body.source_of_pm,
       });
 
     // Fetch the updated rows
@@ -58,9 +57,8 @@ class ExpansionStore {
     return updatedRows;
   }
 
-
   async getExisting(row) {
-    const excludedFields = ["District", "Remarks"];
+    const excludedFields = ["imported_by", "District", "Remarks"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
       const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
@@ -72,7 +70,6 @@ class ExpansionStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
-
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -80,7 +77,6 @@ class ExpansionStore {
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate]);
     return convertedResults;
   }
-
 
   async getAll() {
     const results = await this.db(this.table)
@@ -90,10 +86,11 @@ class ExpansionStore {
         { column: this.cols.reportDate, order: 'desc' }
       ]);
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate]);
-    return convertedResults;
+    const columnNames = await this.db(this.table)
+      .columnInfo()
+      .then((columns) => Object.keys(columns));
+    return results.length > 0 ? convertedResults : { columnNames };
   }
-
-
 
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
@@ -106,7 +103,6 @@ class ExpansionStore {
     return deletedRows;
   }
 
-
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -114,7 +110,6 @@ class ExpansionStore {
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
     return convertedResults[0].max_date;
   }
-
 
   async getTotalGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -146,7 +141,6 @@ class ExpansionStore {
     }
     return await query;
   }
-
 
   async getMonthGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -200,7 +194,6 @@ class ExpansionStore {
 
     return formattedResult;
   }
-
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -263,15 +256,10 @@ function firstDateOfMonth(date) {
   return firstDate;
 }
 
-
 function lastDateOfMonth(date) {
   const lastDate = moment(date).endOf('month').format('YYYY-MM-DD');
   return lastDate;
 }
 
-
-
 module.exports = ExpansionStore;
-
-
 //SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

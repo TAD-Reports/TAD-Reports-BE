@@ -1,12 +1,12 @@
 const { query } = require('express');
 const moment = require('moment-timezone');
-const trainingTableConfig = require('../../configuration/trainingTableConfig');
+const TableConfig = require('../../configuration/trainingTableConfig');
 
 class TrainingStore {
   constructor(db) {
     this.db = db;
-    this.table = trainingTableConfig.tableName;
-    this.cols = trainingTableConfig.columnNames;
+    this.table = TableConfig.tableName;
+    this.cols = TableConfig.columnNames;
   }
 
   async add(row) {
@@ -34,18 +34,18 @@ class TrainingStore {
     await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: body.reportDate,
-        conduct_of_training: body.training,
+        report_date: body.report_date,
+        conduct_of_training: body.conduct_of_training,
         region: body.region,
         province: body.province,
         district: body.district,
         municipality: body.municipality,
         barangay: body.barangay,
         gender: body.gender,
-        age_group: body.ageGroup,
+        age_group: body.age_group,
         venue: body.venue,
-        start_date: body.startDate,
-        end_date: body.endDate,
+        start_date: body.start_date,
+        end_date: body.end_date,
         participants: body.participants,
         remarks: body.remarks,
       });
@@ -59,9 +59,8 @@ class TrainingStore {
     return updatedRows;
   }
 
-
   async getExisting(row) {
-    const excludedFields = ["District", "Remarks"];
+    const excludedFields = ["imported_by", "District", "Remarks"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
       const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
@@ -73,7 +72,6 @@ class TrainingStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
-
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -81,7 +79,6 @@ class TrainingStore {
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.startDate, this.endDate]);
     return convertedResults;
   }
-
 
   async getAll() {
     const results = await this.db(this.table)
@@ -91,10 +88,11 @@ class TrainingStore {
         { column: this.cols.reportDate, order: 'desc' }
       ]);
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.startDate, this.endDate]);
-    return convertedResults;
+    const columnNames = await this.db(this.table)
+      .columnInfo()
+      .then((columns) => Object.keys(columns));
+    return results.length > 0 ? convertedResults : { columnNames };
   }
-
-
 
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
@@ -107,7 +105,6 @@ class TrainingStore {
     return deletedRows;
   }
 
-
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -115,7 +112,6 @@ class TrainingStore {
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
     return convertedResults[0].max_date;
   }
-
 
   async getTotalGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -147,7 +143,6 @@ class TrainingStore {
     }
     return await query;
   }
-
 
   async getMonthGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -201,7 +196,6 @@ class TrainingStore {
 
     return formattedResult;
   }
-
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -264,15 +258,10 @@ function firstDateOfMonth(date) {
   return firstDate;
 }
 
-
 function lastDateOfMonth(date) {
   const lastDate = moment(date).endOf('month').format('YYYY-MM-DD');
   return lastDate;
 }
 
-
-
 module.exports = TrainingStore;
-
-
 //SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

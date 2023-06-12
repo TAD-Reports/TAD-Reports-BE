@@ -1,12 +1,12 @@
 const { query } = require('express');
 const moment = require('moment-timezone');
-const materialsTableConfig = require('../../configuration/materialsTableConfig');
+const TableConfig = require('../../configuration/materialsTableConfig');
 
 class MaterialsStore {
   constructor(db) {
     this.db = db;
-    this.table = materialsTableConfig.tableName;
-    this.cols = materialsTableConfig.columnNames;
+    this.table = TableConfig.tableName;
+    this.cols = TableConfig.columnNames;
   }
 
   async add(row) {
@@ -26,15 +26,14 @@ class MaterialsStore {
     });
   }
 
-
   async update(uuid, body) {
     // Perform the update operation
     await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: body.reportDate,
-        title_of_iec_material: body.titleOfIECMaterial,
-        no_of_copies_distributed: body.noOfCopiesDistributed,
+        report_date: body.report_date,
+        title_of_iec_material: body.title_of_iec_material,
+        no_of_copies_distributed: body.no_of_copies_distributed,
         region: body.region,
         province: body.province,
         district: body.district,
@@ -42,7 +41,7 @@ class MaterialsStore {
         barangay: body.barangay,
         gender: body.gender,
         category: body.category,
-        date_distributed: body.dateDistributed,
+        date_distributed: body.date_distributed,
       });
 
     // Fetch the updated rows
@@ -54,9 +53,8 @@ class MaterialsStore {
     return updatedRows;
   }
 
-
   async getExisting(row) {
-    const excludedFields = ["District"];
+    const excludedFields = ["imported_by", "District"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
       const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
@@ -68,7 +66,6 @@ class MaterialsStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
-
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -76,7 +73,6 @@ class MaterialsStore {
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateDistributed]);
     return convertedResults;
   }
-
 
   async getAll() {
     const results = await this.db(this.table)
@@ -86,10 +82,12 @@ class MaterialsStore {
         { column: this.cols.reportDate, order: 'desc' }
       ]);
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateDistributed]);
-    return convertedResults;
+    const columnNames = await this.db(this.table)
+      .columnInfo()
+      .then((columns) => Object.keys(columns));
+
+    return results.length > 0 ? convertedResults : { columnNames };
   }
-
-
 
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
@@ -102,7 +100,6 @@ class MaterialsStore {
     return deletedRows;
   }
 
-
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -110,7 +107,6 @@ class MaterialsStore {
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
     return convertedResults[0].max_date;
   }
-
 
   async getTotalGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -142,8 +138,6 @@ class MaterialsStore {
     }
     return await query;
   }
-
-
 
   async getMonthGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -197,7 +191,6 @@ class MaterialsStore {
 
     return formattedResult;
   }
-
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -260,15 +253,10 @@ function firstDateOfMonth(date) {
   return firstDate;
 }
 
-
 function lastDateOfMonth(date) {
   const lastDate = moment(date).endOf('month').format('YYYY-MM-DD');
   return lastDate;
 }
 
-
-
 module.exports = MaterialsStore;
-
-
 //SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

@@ -35,8 +35,8 @@ class CottonStore {
     await this.db(this.table)
       .where(this.cols.id, uuid)
       .update({
-        report_date: body.reportDate,
-        name_of_beneficiary: body.nameOfBeneficiary,
+        report_date: body.report_date,
+        name_of_beneficiary: body.name_of_beneficiary,
         region: body.region,
         province: body.province,
         district: body.district,
@@ -44,10 +44,10 @@ class CottonStore {
         barangay: body.barangay,
         gender: body.gender,
         category: body.category,
-        quantity_of_cotton_seeds_given: body.quantityOfCottonSeedsGiven,
-        area_planted_ha: body.areaPlanted,
-        date_planted: body.datePlanted,
-        seed_cotton_harvested: body.seedCottonHarvested,
+        quantity_of_cotton_seeds_given: body.quantity_of_cotton_seeds_given,
+        area_planted_ha: body.area_planted_ha,
+        date_planted: body.date_planted,
+        seed_cotton_harvested: body.seed_cotton_harvested,
         variety: body.variety,
         remarks: body.remarks,
       });
@@ -93,7 +93,10 @@ class CottonStore {
         { column: this.cols.reportDate, order: 'desc' }
       ]);
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.datePlanted]);
-    return convertedResults;
+    const columnNames = await this.db(this.table)
+      .columnInfo()
+      .then((columns) => Object.keys(columns));
+    return results.length > 0 ? convertedResults : { columnNames };
   }
 
 

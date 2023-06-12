@@ -34,7 +34,7 @@ class CocoonStore {
       .where(this.cols.id, uuid)
       .update({
         report_date: body.reportDate,
-        complete_name_of_cooperator_organization: body.completeNameOfCooperatorOrganization,
+        complete_name_of_cooperator_organization: body.complete_name_of_cooperator_organization,
         region: body.region,
         province: body.province,
         district: body.district,
@@ -42,10 +42,10 @@ class CocoonStore {
         barangay: body.barangay,
         gender: body.gender,
         category: body.category,
-        no_of_box_reared: body.noOfBoxReared,
-        date_of_rearing: body.dateOfRearing,
-        total_production_in_kg: body.totalProductionInKg,
-        value_in_php: body.valueInPhp,
+        no_of_box_reared: body.no_of_box_reared,
+        date_of_rearing: body.date_of_rearing,
+        total_production_in_kg: body.total_production_in_kg,
+        value_in_php: body.value_in_php,
       });
 
     // Fetch the updated rows
@@ -56,7 +56,6 @@ class CocoonStore {
 
     return updatedRows;
   }
-
 
   async getExisting(row) {
     const excludedFields = ["District", "Remarks"];
@@ -71,7 +70,6 @@ class CocoonStore {
     return existingRows.length > 0 ? existingRows : null;
   }
 
-
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
@@ -79,7 +77,6 @@ class CocoonStore {
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.dateOfRearing]);
     return convertedResults;
   }
-
 
   async getAll() {
     const results = await this.db(this.table)
@@ -89,10 +86,11 @@ class CocoonStore {
         { column: this.cols.reportDate, order: 'desc' }
       ]);
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.dateOfRearing]);
-    return convertedResults;
+    const columnNames = await this.db(this.table)
+      .columnInfo()
+      .then((columns) => Object.keys(columns));
+    return results.length > 0 ? convertedResults : { columnNames };
   }
-
-
 
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
@@ -105,7 +103,6 @@ class CocoonStore {
     return deletedRows;
   }
 
-
   async getMaxDate() {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
@@ -113,7 +110,6 @@ class CocoonStore {
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
     return convertedResults[0].max_date;
   }
-
 
   async getTotalGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -145,7 +141,6 @@ class CocoonStore {
     }
     return await query;
   }
-
 
   async getMonthGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -199,7 +194,6 @@ class CocoonStore {
 
     return formattedResult;
   }
-
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -262,15 +256,10 @@ function firstDateOfMonth(date) {
   return firstDate;
 }
 
-
 function lastDateOfMonth(date) {
   const lastDate = moment(date).endOf('month').format('YYYY-MM-DD');
   return lastDate;
 }
 
-
-
 module.exports = CocoonStore;
-
-
 //SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

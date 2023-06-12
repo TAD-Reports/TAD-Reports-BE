@@ -91,6 +91,9 @@ class NurseryStore {
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
+    if (!results) {
+      return null;
+    }
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.establishedDate]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -115,6 +118,9 @@ class NurseryStore {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
       .first();
+    if (result.max_date === null) {
+      return null;
+    }
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
     return convertedResults[0].max_date;
   }
@@ -171,8 +177,8 @@ class NurseryStore {
       }, []);
       const updatedFormattedData = formattedData.map((item) => {
         const months = item.months;
-        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
-        return { ...item, months: { ...months, total } };
+        const Total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, Total } };
       });
       return updatedFormattedData;
     });
@@ -192,6 +198,9 @@ class NurseryStore {
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
+    if (!maxDate) {
+      return [];
+    }
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
     } else {

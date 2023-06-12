@@ -61,7 +61,7 @@ class DistributionStore {
     return updatedRows;
   }
 
-  
+
   async getExisting(row) {
     const excludedFields = ["imported_by", "District", "Remarks"];
     const query = this.db(this.table);
@@ -80,8 +80,8 @@ class DistributionStore {
     const results = await this.db(this.table)
       .select()
       .where(this.cols.id, uuid);
-      const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate]);
-      return convertedResults;
+    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate]);
+    return convertedResults;
   }
 
 
@@ -92,6 +92,9 @@ class DistributionStore {
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
+    if (!results) {
+      return null;
+    }
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -116,7 +119,12 @@ class DistributionStore {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
       .first();
+    if (result.max_date === null) {
+      return null;
+    }
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
+    console.log("max_date");
+    console.log(convertedResults[0].max_date);
     return convertedResults[0].max_date;
   }
 
@@ -172,8 +180,8 @@ class DistributionStore {
       }, []);
       const updatedFormattedData = formattedData.map((item) => {
         const months = item.months;
-        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
-        return { ...item, months: { ...months, total } };
+        const Total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+        return { ...item, months: { ...months, Total } };
       });
       return updatedFormattedData;
     });
@@ -182,17 +190,24 @@ class DistributionStore {
 
 
   async search(region, startDate, endDate, search) {
-    //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
+    if (!maxDate) {
+      return [];
+    }
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);

@@ -113,6 +113,9 @@ class MaterialsStore {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
       .first();
+    if (result.max_date === null) {
+      return null;
+    }
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
     return convertedResults[0].max_date;
   }

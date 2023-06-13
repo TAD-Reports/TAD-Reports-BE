@@ -215,13 +215,10 @@ class MaterialsService {
           endDate,
           search
         );
+        table = await store.search(region, startDate, endDate, search);
+      } else {
+        table = await store.getAll();
       }
-      // if (!region && !startDate && !endDate && !search) {
-      //   table = await store.getAll();
-      // } else {
-        
-      // }
-      table = await store.search(region, startDate, endDate, search);
       return res.status(200).send({
         success: true,
         graph: graph,

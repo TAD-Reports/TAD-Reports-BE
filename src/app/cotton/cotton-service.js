@@ -174,7 +174,7 @@ class CottonService {
       if (!id) {
         throw new NotFoundError("ID Not Found");
       }
-      const result = await store.update(uuid, body);
+      const result = store.update(uuid, body);
       if (result === 0) {
         throw new NotFoundError("Data Not Found");
       }
@@ -241,11 +241,12 @@ class CottonService {
           search
         );
       }
-      if (!region && !startDate && !endDate && !search) {
-        table = await store.getAll();
-      } else {
-        table = await store.search(region, startDate, endDate, search);
-      }
+      // if (!region && !startDate && !endDate && !search) {
+      //   table = await store.getAll();
+      // } else {
+        
+      // }
+      table = await store.search(region, startDate, endDate, search);
       return res.status(200).send({
         success: true,
         graph: graph,

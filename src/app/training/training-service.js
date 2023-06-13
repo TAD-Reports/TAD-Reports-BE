@@ -67,6 +67,14 @@ class TrainingService {
         if (row['Report Date'] && typeof row['Report Date'] === 'number') {
           row['Report Date'] = convertExcelDate(row['Report Date']);
         }
+
+        if (row['Start Date'] && typeof row['Start Date'] === 'number') {
+          row['Start Date'] = convertExcelDate(row['Start Date']);
+        }
+
+        if (row['End Date'] && typeof row['End Date'] === 'number') {
+          row['End Date'] = convertExcelDate(row['End Date']);
+        }
         const regionValue = row["Region"];
         if (!regionValue.startsWith("Region ")) {
           throw new BadRequestError(
@@ -214,11 +222,12 @@ class TrainingService {
           search
         );
       }
-      if (!region && !startDate && !endDate && !search) {
-        table = await store.getAll();
-      } else {
-        table = await store.search(region, startDate, endDate, search);
-      }
+      // if (!region && !startDate && !endDate && !search) {
+      //   table = await store.getAll();
+      // } else {
+        
+      // }
+      table = await store.search(region, startDate, endDate, search);
       return res.status(200).send({
         success: true,
         graph: graph,

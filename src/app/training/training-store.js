@@ -91,6 +91,9 @@ class TrainingStore {
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
+    if (!results) {
+      return null;
+    }
     const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.startDate, this.endDate]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -115,6 +118,9 @@ class TrainingStore {
     const result = await this.db(this.table)
       .max(`${this.cols.reportDate} as max_date`)
       .first();
+    if (result.max_date === null) {
+      return null;
+    }
     const convertedResults = convertDatesToTimezone([result], ['max_date']);
     return convertedResults[0].max_date;
   }
@@ -184,14 +190,22 @@ class TrainingStore {
     //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select()
       .orderBy([
         { column: this.cols.region },
         { column: this.cols.reportDate, order: 'desc' }
       ]);
+    if (!maxDate) {
+      return [];
+    }
     if (startDate && endDate) {
       query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
     if (region) {
       query.where(this.cols.region, region);

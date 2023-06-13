@@ -151,7 +151,7 @@ class NurseryStore {
       query.where(this.cols.region, region);
     }
     if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+      const columns = await this.db(this.table).columnInfo(); 
       query.andWhere((builder) => {
         builder.where((innerBuilder) => {
           Object.keys(columns).forEach((column) => {
@@ -210,7 +210,7 @@ class NurseryStore {
       query.where(this.cols.region, region);
     }
     if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+      const columns = await this.db(this.table).columnInfo();
       query.andWhere((builder) => {
         builder.where((innerBuilder) => {
           Object.keys(columns).forEach((column) => {
@@ -219,16 +219,15 @@ class NurseryStore {
         });
       });
     }
-    const results = await query; // Execute the query and retrieve the results
+    const results = await query;
     const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.establishedDate]);
     return convertedResults;
   }
 }
 
 function formatDate(dateString) {
-  const date = moment(dateString, 'YYYY/MM/DD', true); // Use moment.js to parse the date
+  const date = moment(dateString, 'YYYY/MM/DD', true);
   if (!date.isValid()) {
-    console.log("Invalid Date! Use this format YYYY/MM/DD");
     return ("");
   }
   return date.format('YYYY-MM-DD');
@@ -259,6 +258,3 @@ function lastDateOfMonth(date) {
 
 
 module.exports = NurseryStore;
-
-
-//SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

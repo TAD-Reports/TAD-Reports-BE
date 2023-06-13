@@ -13,6 +13,7 @@ router.use(require('./cocoon/_rest'));
 router.use(require('./expansionandrehabilitation/_rest'));
 router.use(require('./jobapplication/jobappform/_rest'));
 router.use(require('./jobapplication/jobpositions/_rest'));
+router.use(require('./abacadiseasemanagement/_rest'));
 // router.use(require('./iecmaterials/_rest'));
 //Add here
 router.use(require('./download/_rest'));

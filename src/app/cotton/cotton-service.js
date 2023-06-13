@@ -131,7 +131,6 @@ class CottonService {
         });
         rowsAdded.push(row);
       }
-
       return res.status(200).json({
         success: true,
         message: `${rowsAdded.length} rows are added from ${file.originalname} into the database`,
@@ -240,13 +239,10 @@ class CottonService {
           endDate,
           search
         );
+        table = await store.search(region, startDate, endDate, search);
+      } else {
+        table = await store.getAll();
       }
-      // if (!region && !startDate && !endDate && !search) {
-      //   table = await store.getAll();
-      // } else {
-        
-      // }
-      table = await store.search(region, startDate, endDate, search);
       return res.status(200).send({
         success: true,
         graph: graph,

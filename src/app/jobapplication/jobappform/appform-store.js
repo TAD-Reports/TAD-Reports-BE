@@ -1,16 +1,24 @@
 const { query } = require("express");
 const moment = require("moment-timezone");
-const TableConfig = require("../../../configuration/jobappConfig/applicantTableConfig");
+const TableConfig = require("../../../configuration/jobappConfig/JobApplication/applicantTableConfig");
+const AttachmentsTableConfig = require("../../../configuration/jobappConfig/JobApplication/attachmentsTableConfig");
+const EligibilitiesTableConfig = require("../../../configuration/jobappConfig/JobApplication/eligibilitiesTableConfig");
 
 class AppFormStore {
   constructor(db) {
     this.db = db;
     this.table = TableConfig.tableName;
+    this.attachments = AttachmentsTableConfig.tableName;
+    this.eligibilities = EligibilitiesTableConfig.tableName;
     this.cols = TableConfig.columnNames;
+    this.attachcols = TableConfig.columnNames;
+    this.eligibscols = TableConfig.columnNames;
   }
 
   async add(body) {
-    await this.db(this.table).insert({
+    const { pds, college, masteral, doctoral } = attachments;
+
+    const [uuid] = await this.db(this.table).insert({
       last_name: body.lastName,
       first_name: body.firstName,
       middle_name: body.middleName,
@@ -27,6 +35,26 @@ class AppFormStore {
       doctoral_year: body.doctoralYear,
       doctoral_course: body.doctoralCourse,
     });
+
+    await this.db(this.attachments).insert({
+      uploaded_by: uuid,
+      pds,
+      college,
+      masteral,
+      doctoral,
+    });
+
+    if (eligibilities) {
+      const eligibilityData = eligibilities.map(eligibility => ({
+        uploaded_by: uuid,
+        file_name: eligibility.file_name,
+        file: eligibility.file,
+      }));
+    
+      await this.db(this.eligibilities).insert(eligibilityData);
+    }
+
+    
 
     return this.getExisting(body);
   }
@@ -92,25 +120,13 @@ class AppFormStore {
     const results = await this.db(this.table)
       .select()
       .where(this.cols.id, uuid);
-    const convertedResults = convertDatesToTimezone(results, [
-      this.cols.reportDate,
-      this.cols.establishedDate,
-    ]);
-    return convertedResults;
+    return results;
   }
 
   async getAll() {
     const results = await this.db(this.table)
       .select()
-      .orderBy([
-        { column: this.cols.region },
-        { column: this.cols.reportDate, order: "desc" },
-      ]);
-    const convertedResults = convertDatesToTimezone(results, [
-      this.cols.reportDate,
-      this.cols.establishedDate,
-    ]);
-    return convertedResults;
+    return results;
   }
 
   async delete(uuid) {
@@ -130,126 +146,9 @@ class AppFormStore {
     return convertedResults[0].max_date;
   }
 
-  async getTotalGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(`${this.cols.fundedBy} as name`)
-      .sum(`${this.cols.area} as total`)
-      .groupBy(this.cols.fundedBy);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [
-        formattedStartDate,
-        formattedEndDate,
-      ]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, "like", `%${search}%`);
-          });
-        });
-      });
-    }
-    return await query;
-  }
-
-  async getMonthGraph(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
-    const query = this.db(this.table)
-      .select(this.cols.fundedBy)
-      .select(
-        this.db.raw(
-          `CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`
-        )
-      )
-      .sum(`${this.cols.area} AS area`)
-      .groupBy(
-        this.cols.fundedBy,
-        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`)
-      );
-
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [
-        formattedStartDate,
-        formattedEndDate,
-      ]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
-    if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-      query.andWhere((builder) => {
-        builder.where((innerBuilder) => {
-          Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, "like", `%${search}%`);
-          });
-        });
-      });
-    }
-
-    const formattedResult = await query.then((rows) => {
-      const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.name === curr.funded_by);
-        if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.area;
-        } else {
-          acc.push({
-            name: curr.funded_by,
-            months: {
-              [curr.month_year]: curr.area,
-            },
-          });
-        }
-        return acc;
-      }, []);
-
-      return formattedData;
-    });
-
-    return formattedResult;
-  }
-
-  async search(region, startDate, endDate, search) {
-    const formattedStartDate = formatDate(startDate);
-    const formattedEndDate = formatDate(endDate);
-    const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
-    const lastDate = lastDateOfMonth(maxDate);
+  async search(search) {
     const query = this.db(this.table)
       .select()
-      .orderBy([
-        { column: this.cols.region },
-        { column: this.cols.reportDate, order: "desc" },
-      ]);
-    if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [
-        formattedStartDate,
-        formattedEndDate,
-      ]);
-    } else {
-      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-    }
-    if (region) {
-      query.where(this.cols.region, region);
-    }
     if (search) {
       const columns = await this.db(this.table).columnInfo(); // Retrieve column information
       query.andWhere((builder) => {
@@ -261,11 +160,7 @@ class AppFormStore {
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(
-      results.map((row) => row),
-      [this.cols.reportDate, this.cols.establishedDate]
-    );
-    return convertedResults;
+    return results;
   }
 }
 

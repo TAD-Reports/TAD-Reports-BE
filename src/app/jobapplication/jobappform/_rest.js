@@ -13,15 +13,15 @@ const router = express.Router();
 router.post("/appform", db, uploadFile, asyncHandler(service.add));
 
 //Get
-// router.get("/appform/get/:uuid", db, asyncHandler(service.get));
+router.get("/appform/get/:uuid", db, asyncHandler(service.get));
 
-// Graph and Table
-// router.get("/appform/data", db, asyncHandler(service.getData));
+//Search
+router.get("/appform/data", db, asyncHandler(service.getData));
 
 //Update
 // router.put("/appform/update/:uuid", db, asyncHandler(service.update));
 
 //Delete
-// router.delete("/appform/delete/:uuid", db, asyncHandler(service.delete));
+router.delete("/appform/delete/:uuid", db, asyncHandler(service.delete));
 
 module.exports = router;

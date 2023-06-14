@@ -299,10 +299,10 @@ const userDao =
             })
             .createTable('attachments', (table) => {
               table.increments('uuid').primary();
-              table.binary('pds').notNullable();
-              table.binary('college').notNullable();
-              table.binary('masteral').notNullable();
-              table.binary('doctoral').notNullable();
+              table.blob('pds').notNullable();
+              table.blob('college').notNullable();
+              table.blob('masteral').notNullable();
+              table.blob('doctoral').notNullable();
               table.timestamps(true, true);
               table
                 .integer('uploaded_by')
@@ -317,7 +317,7 @@ const userDao =
               table.increments('uuid').primary();
               table.string('type').notNullable();
               table.string('file_name').notNullable();
-              table.binary('file', 255).notNullable();
+              table.blob('file').notNullable();
               table.timestamps(true, true);
               table
                 .integer('uploaded_by')

@@ -8,14 +8,14 @@ class AppFormStore {
   constructor(db) {
     this.db = db;
     this.table = TableConfig.tableName;
-    this.attachments = AttachmentsTableConfig.tableName;
-    this.eligibilities = EligibilitiesTableConfig.tableName;
+    this.attachmentsTable = AttachmentsTableConfig.tableName;
+    this.eligibilitiesTable = EligibilitiesTableConfig.tableName;
     this.cols = TableConfig.columnNames;
     this.attachcols = TableConfig.columnNames;
     this.eligibscols = TableConfig.columnNames;
   }
 
-  async add(body) {
+  async add(body, attachments, eligibility) {
     const { pds, college, masteral, doctoral } = attachments;
 
     const [uuid] = await this.db(this.table).insert({
@@ -36,7 +36,7 @@ class AppFormStore {
       doctoral_course: body.doctoralCourse,
     });
 
-    await this.db(this.attachments).insert({
+    await this.db(this.attachmentsTable).insert({
       uploaded_by: uuid,
       pds,
       college,
@@ -44,17 +44,12 @@ class AppFormStore {
       doctoral,
     });
 
-    if (eligibilities) {
-      const eligibilityData = eligibilities.map(eligibility => ({
-        uploaded_by: uuid,
-        file_name: eligibility.file_name,
-        file: eligibility.file,
-      }));
-    
-      await this.db(this.eligibilities).insert(eligibilityData);
-    }
-
-    
+    await this.db(this.eligibilitiesTable).insert({
+      uploaded_by: uuid,
+      type: eligibility.type,
+      file_name: eligibility.file_name,
+      file: eligibility.file,
+    });
 
     return this.getExisting(body);
   }
@@ -124,8 +119,7 @@ class AppFormStore {
   }
 
   async getAll() {
-    const results = await this.db(this.table)
-      .select()
+    const results = await this.db(this.table).select();
     return results;
   }
 
@@ -147,8 +141,7 @@ class AppFormStore {
   }
 
   async search(search) {
-    const query = this.db(this.table)
-      .select()
+    const query = this.db(this.table).select();
     if (search) {
       const columns = await this.db(this.table).columnInfo(); // Retrieve column information
       query.andWhere((builder) => {

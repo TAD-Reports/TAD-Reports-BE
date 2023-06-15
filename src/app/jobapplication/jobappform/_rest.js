@@ -4,10 +4,13 @@ const db = require("../../../middlewares/db");
 const schema = require("../../../middlewares/schema");
 const asyncHandler = require("express-async-handler");
 const Service = require("./appform-service");
-const uploadFile = require("../../../middlewares/upload-file");
+const uploadFile = require("../../../middlewares/appform-fileupload");
 
 const service = new Service();
 const router = express.Router();
+
+//asdas
+router.post("/asd", db, uploadFile, asyncHandler(service.uploaad));
 
 //Add / Import
 router.post("/appform", db, uploadFile, asyncHandler(service.add));

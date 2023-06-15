@@ -11,6 +11,19 @@ const {
 class AppFormService {
   constructor(store) {}
 
+  async uploaad(req, res, next) {
+    try {
+      console.log(req.files);
+
+      return res.status(200).json({
+        success: true,
+        message: "asd",
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   // Add
   async add(req, res, next) {
     try {
@@ -22,7 +35,7 @@ class AppFormService {
         !req.college ||
         !req.masteral ||
         !req.doctoral ||
-        !req.eligibility
+        !req.file
       ) {
         throw new FileUploadError("No file uploaded");
       }
@@ -34,7 +47,11 @@ class AppFormService {
         doctoral: req.doctoral,
       };
 
-      const eligibility = req.eligibility;
+      const eligibility = {
+        type: req.type,
+        file: req.file,
+        file_name: req.file_name,
+      };
 
       let result = [];
 

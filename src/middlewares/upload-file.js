@@ -4,15 +4,24 @@ const { BadRequestError } = require('./errors');
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: function (req, file, cb) {
-    if (file.mimetype !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
-      return cb(new BadRequestError('Invalid file type. Only XLSX files are allowed.'));
+    const allowedMimeTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/pdf',
+      'image/png',
+      'image/jpeg',
+    ];
+
+    if (!allowedMimeTypes.includes(file.mimetype)) {
+      return cb(new BadRequestError('Invalid file type. Only XLSX, PDF, PNG, and JPEG files are allowed.'));
     }
+
     cb(null, true);
   },
   limits: {
     fileSize: 1024 * 1024 * 100 // 100 MB file size limit
   }
 });
+
 
 const uploadFile = (req, res, next) => {
   upload.single('file')(req, res, function (err) {

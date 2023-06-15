@@ -11,13 +11,11 @@ class AppFormStore {
     this.attachmentsTable = AttachmentsTableConfig.tableName;
     this.eligibilitiesTable = EligibilitiesTableConfig.tableName;
     this.cols = TableConfig.columnNames;
-    this.attachcols = TableConfig.columnNames;
-    this.eligibscols = TableConfig.columnNames;
+    this.attachcols = AttachmentsTableConfig.columnNames;
+    this.eligibscols = EligibilitiesTableConfig.columnNames;
   }
 
   async add(body, attachments, eligibility) {
-    const { pds, college, masteral, doctoral } = attachments;
-
     const [uuid] = await this.db(this.table).insert({
       last_name: body.lastName,
       first_name: body.firstName,
@@ -38,17 +36,17 @@ class AppFormStore {
 
     await this.db(this.attachmentsTable).insert({
       uploaded_by: uuid,
-      pds,
-      college,
-      masteral,
-      doctoral,
+      pds: attachments.pds.buffer,
+      college: attachments.college.buffer,
+      masteral: attachments.masteral.buffer,
+      doctoral: attachments.doctoral.buffer,
     });
 
     await this.db(this.eligibilitiesTable).insert({
       uploaded_by: uuid,
       type: eligibility.type,
-      file_name: eligibility.file_name,
-      file: eligibility.file,
+      file_name: eligibility.fileName,
+      file: eligibility.file.buffer,
     });
 
     return this.getExisting(body);
@@ -66,8 +64,7 @@ class AppFormStore {
     return result;
   }
 
-  async update(uuid, body) {
-    // Perform the update operation
+  async update(uuid, body, attachments, eligibility) {
     await this.db(this.table).where(this.cols.id, uuid).update({
       last_name: body.lastName,
       first_name: body.firstName,
@@ -85,6 +82,25 @@ class AppFormStore {
       doctoral_year: body.doctoralYear,
       doctoral_course: body.doctoralCourse,
     });
+
+    await this.db(this.attachmentsTable)
+      .where(this.attachcols.uploadedBy, uuid)
+      .update({
+        uploaded_by: uuid,
+        pds: attachments.pds.buffer,
+        college: attachments.college.buffer,
+        masteral: attachments.masteral.buffer,
+        doctoral: attachments.doctoral.buffer,
+      });
+
+    await this.db(this.eligibilitiesTable)
+      .where(this.eligibscols.uploadedBy, uuid)
+      .update({
+        type: eligibility.type,
+        file_name: eligibility.fileName,
+        file: eligibility.file.buffer,
+        uploaded_by: uuid,
+      });
 
     // Fetch the updated rows
     const updatedRows = await this.db(this.table)

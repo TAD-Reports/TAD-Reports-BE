@@ -13,11 +13,33 @@ class AppFormService {
 
   async uploaad(req, res, next) {
     try {
-      console.log(req.files);
+      const attachments = {};
+
+      for (const key in req.files) {
+        if (req.files.hasOwnProperty(key)) {
+          console.log("Key:", key);
+
+          if (
+            req.files[key].fieldname === "pds" ||
+            req.files[key].fieldname === "college" ||
+            req.files[key].fieldname === "masteral" ||
+            req.files[key].fieldname === "doctoral" ||
+            req.files[key].fieldname === "file"
+          ) {
+            attachments[req.files[key].fieldname] = req.files[key];
+            console.log(
+              "Attachment added:",
+              attachments[req.files[key].fieldname]
+            );
+          }
+        }
+      }
+
+      console.log("Attachments:", attachments);
 
       return res.status(200).json({
         success: true,
-        message: "asd",
+        message: "Saved Successfully",
       });
     } catch (err) {
       next(err);
@@ -30,34 +52,48 @@ class AppFormService {
       const store = new Store(req.db);
       const body = req.body;
 
-      if (
-        !req.pds ||
-        !req.college ||
-        !req.masteral ||
-        !req.doctoral ||
-        !req.file
-      ) {
-        throw new FileUploadError("No file uploaded");
+      for (const key in req.files) {
+        if (req.files.hasOwnProperty(key)) {
+          if (
+            !req.files[key].fieldname === "pds" ||
+            !req.files[key].fieldname === "college" ||
+            !req.files[key].fieldname === "masteral" ||
+            !req.files[key].fieldname === "doctoral"
+          ) {
+            throw new FileUploadError(
+              "No file uploaded or some files are missing"
+            );
+          }
+        }
       }
 
-      const attachments = {
-        pds: req.pds,
-        college: req.college,
-        masteral: req.masteral,
-        doctoral: req.doctoral,
-      };
+      let attachments = {};
 
-      const eligibility = {
-        type: req.type,
-        file: req.file,
-        file_name: req.file_name,
-      };
+      for (const key in req.files) {
+        if (req.files.hasOwnProperty(key)) {
+          if (
+            req.files[key].fieldname === "pds" ||
+            req.files[key].fieldname === "college" ||
+            req.files[key].fieldname === "masteral" ||
+            req.files[key].fieldname === "doctoral"
+          ) {
+            attachments[req.files[key].fieldname] = req.files[key];
+          }
+        }
+      }
+
+      const eligibility = { type: body.type, fileName: body.fileName, file: req.files[4] };
 
       let result = [];
 
       const applicant = await store.getExisting(body);
       if (applicant) {
-        result = await store.update(applicant.uuid, body);
+        result = await store.update(
+          applicant.uuid,
+          body,
+          attachments,
+          eligibility
+        );
       } else {
         result = await store.add(body, attachments, eligibility);
       }
@@ -65,7 +101,6 @@ class AppFormService {
       return res.status(200).json({
         success: true,
         message: "Saved Successfully",
-        data: result,
       });
     } catch (err) {
       next(err);

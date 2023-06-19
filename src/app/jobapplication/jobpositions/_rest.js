@@ -10,7 +10,7 @@ const service = new Service();
 const router = express.Router();
 
 //Add / Import
-router.post("/jobposition", db, uploadFile, asyncHandler(service.add));
+router.post("/jobposition", db, asyncHandler(service.add));
 
 //Get
 // router.get("/iecmaterials/get/:uuid", db, asyncHandler(service.get));

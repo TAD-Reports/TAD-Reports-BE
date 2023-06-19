@@ -273,7 +273,7 @@ const userDao =
               table
                 .integer('imported_by')
                 .unsigned()
-                .notNullable()
+                .nullable()
                 .references('uuid')
                 .inTable('users')
                 .onDelete('RESTRICT');

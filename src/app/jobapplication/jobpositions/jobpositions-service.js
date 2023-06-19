@@ -45,6 +45,68 @@ class JobPositionsService {
       next(err);
     }
   }
+
+  async update(req, res, next) {
+    try {
+      const store = new Store(req.db);
+      const logs = new Logs(req.db);
+      const uuid = req.params.uuid;
+      const body = req.body;
+      //const userId = req.auth.id; // Get user ID using auth
+      const id = await store.getByUUID(uuid);
+      if (!id) {
+        throw new NotFoundError('ID Not Found');
+      }
+      const result = store.update(uuid, body);
+      if (result === 0) {
+        throw new NotFoundError('Data Not Found');
+      }
+      logs.add({
+        uuid: userId,
+        module: moduleName,
+        action: `updated a row in ${moduleName} table`,
+        data: result,
+        ...body
+      });
+      return res.status(200).send({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async delete(req, res, next) {
+    try {
+      const store = new Store(req.db);
+      const logs = new Logs(req.db);
+      const uuid = req.params.uuid;
+      const body = req.body;
+      const result = await store.delete(uuid);
+      //const userId = req.auth.id; // Get user ID using auth
+      if (result === 0) {
+        throw new NotFoundError('Data Not Found');
+      }
+      logs.add({
+        uuid: userId,
+        module: moduleName,
+        action: `deleted a row in ${moduleName} table`,
+        data: result,
+        ...body
+      });
+      return res.status(202).send({
+        success: true,
+        message: 'Deleted successfuly'
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+
+
+
 }
 
 module.exports = JobPositionsService;

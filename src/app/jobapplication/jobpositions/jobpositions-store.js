@@ -1,6 +1,6 @@
-const { query } = require('express');
-const moment = require('moment-timezone');
-const TableConfig = require('../../../configuration/jobappConfig/jobPositionConfig');
+const { query } = require("express");
+const moment = require("moment-timezone");
+const TableConfig = require("../../../configuration/jobappConfig/jobPositionConfig");
 
 class PositionsStore {
   constructor(db) {
@@ -21,41 +21,31 @@ class PositionsStore {
       experience: body.experience,
       eligibility: body.eligibility,
       competency: body.competency,
-      place_of_assignment: body.placeOfAssignment
+      place_of_assignment: body.placeOfAssignment,
     });
   }
 
-
   async update(uuid, body) {
     // Perform the update operation
-    await this.db(this.table)
-      .where(this.cols.id, uuid)
-      .update({
-        report_date: body.reportDate,
-        nurseries: body.nurseries,
-        funded_by: body.fundedBy,
-        region: body.region,
-        province: body.province,
-        district: body.district,
-        municipality: body.municipality,
-        barangay: body.barangay,
-        complete_name_of_cooperator_organization: body.cooperator,
-        date_established: body.establishedDate,
-        area_in_hectares_ha: body.area,
-        variety_used: body.variety,
-        period_of_moa: body.moa,
-        remarks: body.remarks,
-      });
-
-    // Fetch the updated rows
+    await this.db(this.table).where(this.cols.id, uuid).update({
+      position_title: body.positionTitle,
+      plantilia_item_no: body.plantiliaItemNo,
+      salary_job_pay_grade: body.salaryJobPayGrade,
+      monthly_salary: body.monthlySalary,
+      education: body.education,
+      training: body.training,
+      experience: body.experience,
+      eligibility: body.eligibility,
+      competency: body.competency,
+      place_of_assignment: body.placeOfAssignment,
+    });
     const updatedRows = await this.db(this.table)
-      .where(this.cols.id, uuid)
-      .select('*')
+      .where(this.cols.uuid, uuid)
+      .select("*")
       .first();
 
     return updatedRows;
   }
-
 
   // async getExisting(row) {
   //   const excludedFields = ["District", "Remarks"];
@@ -70,49 +60,32 @@ class PositionsStore {
   //   return existingRows.length > 0 ? existingRows : null;
   // }
 
-
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
       .where(this.cols.id, uuid);
-    
-    return results;
+    return convertedResults;
   }
-
 
   async getAll() {
     const results = await this.db(this.table)
       .select()
       .orderBy([
         { column: this.cols.region },
-        { column: this.cols.reportDate, order: 'desc' }
+        { column: this.cols.reportDate, order: "desc" },
       ]);
-    
+
     return results;
   }
-
-
 
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
-      .select('*')
+      .select("*")
       .first();
-    await this.db(this.table)
-      .where(this.cols.id, uuid)
-      .del();
+    await this.db(this.table).where(this.cols.id, uuid).del();
     return deletedRows;
   }
-
-
-
-
-
-
-
-
-  
-
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -124,10 +97,13 @@ class PositionsStore {
       .select()
       .orderBy([
         { column: this.cols.region },
-        { column: this.cols.reportDate, order: 'desc' }
+        { column: this.cols.reportDate, order: "desc" },
       ]);
     if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+      query.whereBetween(this.cols.reportDate, [
+        formattedStartDate,
+        formattedEndDate,
+      ]);
     } else {
       query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
@@ -139,18 +115,20 @@ class PositionsStore {
       query.andWhere((builder) => {
         builder.where((innerBuilder) => {
           Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
+            innerBuilder.orWhere(column, "like", `%${search}%`);
           });
         });
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.establishedDate]);
+    const convertedResults = convertDatesToTimezone(
+      results.map((row) => row),
+      [this.cols.reportDate, this.cols.establishedDate]
+    );
     return convertedResults;
   }
 }
 
 module.exports = PositionsStore;
-
 
 //SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

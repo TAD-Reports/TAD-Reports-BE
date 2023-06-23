@@ -62,10 +62,10 @@ const userDao =
               table.string('municipality').notNullable();
               table.string('barangay').notNullable();
               table
-                .integer('no_of_pm_available_during_establishment')
+                .double("no_of_pm_available_during_establishment")
                 .notNullable();
               table.string('variety').notNullable();
-              table.integer('no_of_pm_distributed').notNullable();
+              table.double("no_of_pm_distributed").notNullable();
               table.string('name_of_recipient_bene').notNullable();
               table.string('address_of_beneficiary').notNullable();
               table.string('gender').notNullable();
@@ -91,12 +91,12 @@ const userDao =
               table.string('municipality').notNullable();
               table.string('barangay').notNullable();
               table
-                .integer('no_of_pm_available_during_establishment')
+                .double("no_of_pm_available_during_establishment")
                 .notNullable();
               table.string('variety').notNullable();
               table.date('date_received').notNullable();
-              table.integer('no_of_pm_planted').notNullable();
-              table.integer('no_of_pm_survived').notNullable();
+              table.double("no_of_pm_planted").notNullable();
+              table.double("no_of_pm_survived").notNullable();
               table.string('remarks').nullable();
               table.timestamps(true, true);
               table
@@ -121,7 +121,7 @@ const userDao =
               table.string('venue').notNullable();
               table.date('start_date').notNullable();
               table.date('end_date').notNullable();
-              table.integer('participants').notNullable();
+              table.double("participants").notNullable();
               table.string('remarks').nullable();
               table.timestamps(true, true);
               table
@@ -136,7 +136,7 @@ const userDao =
               table.increments('uuid').primary();
               table.date('report_date').notNullable();
               table.string('title_of_iec_material').notNullable();
-              table.integer('no_of_copies_distributed').notNullable();
+              table.double("no_of_copies_distributed").notNullable();
               table.string('region').notNullable();
               table.string('province').notNullable();
               table.string('district').nullable();
@@ -165,10 +165,10 @@ const userDao =
               table.string('barangay').notNullable();
               table.string('gender').notNullable();
               table.string('category').notNullable();
-              table.integer('quantity_of_cotton_seeds_given').notNullable();
-              table.integer('area_planted_ha').notNullable();
+              table.double("quantity_of_cotton_seeds_given").notNullable();
+              table.double("area_planted_ha").notNullable();
               table.date('date_planted').notNullable();
-              table.integer('seed_cotton_harvested').notNullable();
+              table.double("seed_cotton_harvested").notNullable();
               table.string('variety').notNullable();
               table.string('remarks').nullable();
               table.timestamps(true, true);
@@ -193,10 +193,10 @@ const userDao =
               table.string('barangay').notNullable();
               table.string('gender').notNullable();
               table.string('category').notNullable();
-              table.integer('no_of_box_reared').notNullable();
+              table.double("no_of_box_reared").notNullable();
               table.date('date_of_rearing').notNullable();
-              table.integer('total_production_in_kg').notNullable();
-              table.integer('value_in_php').notNullable();
+              table.double("total_production_in_kg").notNullable();
+              table.double("value_in_php").notNullable();
               table.timestamps(true, true);
               table
                 .integer('imported_by')
@@ -218,7 +218,7 @@ const userDao =
               table.string('name_of_beneficiary').notNullable();
               table.string('gender').notNullable();
               table.string('category').notNullable();
-              table.integer('area_planted_has').notNullable();
+              table.double("area_planted_has").notNullable();
               table.string('variety').notNullable();
               table.string('source_of_pm').notNullable();
               table.timestamps(true, true);
@@ -242,10 +242,12 @@ const userDao =
               table.string('name_of_beneficiary').notNullable();
               table.string('gender').notNullable();
               table.string('category').notNullable();
-              table.integer('actual_area_ha').notNullable();
+              table.double("actual_area_ha").notNullable();
               table.string('effective_area').notNullable();
-              table.integer('disease_percentage_during_eradication_percentage').notNullable();
-              table.integer('area_treated_eradicated').notNullable();
+              table
+                .double("disease_percentage_during_eradication_percentage")
+                .notNullable();
+              table.double("area_treated_eradicated").notNullable();
               table.date('date_eradicated').notNullable();
               table.string('remarks').notNullable();
               table.timestamps(true, true);
@@ -262,7 +264,7 @@ const userDao =
               table.string('position_title').notNullable();
               table.string('plantilia_item_no').notNullable();
               table.string('salary_job_pay_grade').notNullable();
-              table.integer('monthly_salary').notNullable();
+              table.double("monthly_salary").notNullable();
               table.string('education').nullable();
               table.string('training').notNullable();
               table.string('experience').notNullable();

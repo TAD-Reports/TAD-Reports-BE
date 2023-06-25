@@ -126,6 +126,7 @@ class NurseryStore {
     return convertedResults[0].max_date;
   }
 
+
   async getLineGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
@@ -281,6 +282,7 @@ class NurseryStore {
     });
     return formattedResult;
   }
+  
 
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);

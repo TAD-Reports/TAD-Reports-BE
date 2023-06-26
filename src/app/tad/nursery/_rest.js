@@ -3,10 +3,10 @@ const auth = require("../../../middlewares/auth");
 const db = require("../../../middlewares/db");
 const schema = require("../../../middlewares/schema");
 const asyncHandler = require("express-async-handler");
-const NurseryService = require("./nursery-service");
+const Service = require("./nursery-service");
 const uploadFile = require("../../../middlewares/upload-file");
 
-const service = new NurseryService();
+const service = new Service();
 const router = express.Router();
 
 //Add / Import

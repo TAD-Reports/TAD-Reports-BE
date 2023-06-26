@@ -14,11 +14,10 @@ module.exports = {
     category: 'category',
     actualAreaHa: 'actual_area_ha',
     effectiveArea: 'effective_area',
-    diseasePercentage: 'disease_percentage_during_eradication_percentage',
+    diseasePercentage: 'disease_incidence_during_eradication_percentage',
     areaTreatedEradicated: 'area_treated_eradicated',
     dateEradicated: 'date_eradicated',
     remarks: 'remarks',
-    status: 'status',
     importedBy: 'imported_by'
   },
 };

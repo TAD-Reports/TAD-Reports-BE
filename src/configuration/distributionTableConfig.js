@@ -18,7 +18,6 @@ module.exports = {
     gender: 'gender',
     categpry: 'categpry',
     remarks: 'remarks',
-    status: 'status',
     importedBy: 'imported_by'
   },
 };

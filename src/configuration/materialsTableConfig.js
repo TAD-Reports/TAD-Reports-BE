@@ -13,7 +13,6 @@ module.exports = {
     gender: 'gender',
     category: 'category',
     dateDistributed: 'date_distributed',
-    stats: 'status',
     importedBy: 'imported_by'
     // Add other column names here if necessary
   },

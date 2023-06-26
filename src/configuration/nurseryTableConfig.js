@@ -16,7 +16,6 @@ module.exports = {
     variety: 'variety_used',
     moa: 'period_of_moa',
     remarks: 'remarks',
-    stats: 'status',
     importedBy: 'imported_by'
     // Add other column names here if necessary
   },

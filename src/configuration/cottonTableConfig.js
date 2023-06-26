@@ -17,7 +17,6 @@ module.exports = {
     seedCottonHarvested: 'seed_cotton_harvested',
     variety: 'variety',
     remarks: 'remarks',
-    stats: 'status',
     importedBy: 'imported_by'
     // Add other column names here if necessary
   },

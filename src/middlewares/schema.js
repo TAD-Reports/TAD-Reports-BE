@@ -233,7 +233,6 @@ const userDao =
               .inTable("users")
               .onDelete("RESTRICT");
           })
-
           .createTable("abacadiseasemanagement", (table) => {
             table.increments("uuid").primary();
             table.date("report_date").notNullable();
@@ -249,11 +248,38 @@ const userDao =
             table.double("actual_area_ha").notNullable();
             table.string("effective_area").notNullable();
             table
-              .double("disease_percentage_during_eradication_percentage")
+              .double("disease_incidence_during_eradication_percentage")
               .notNullable();
             table.double("area_treated_eradicated").notNullable();
             table.date("date_eradicated").notNullable();
-            table.string("remarks").notNullable();
+            table.string("remarks").nullable();
+            table.timestamps(true, true);
+            table
+              .integer("imported_by")
+              .unsigned()
+              .notNullable()
+              .references("uuid")
+              .inTable("users")
+              .onDelete("RESTRICT");
+          })
+          .createTable("coconutproject", (table) => {
+            table.increments("uuid").primary();
+            table.date("report_date").notNullable();
+            table.string("name_of_fiber_crops").notNullable();
+            table.string("region").notNullable();
+            table.string("province").notNullable();
+            table.string("district").nullable();
+            table.string("municipality").notNullable();
+            table.string("barangay").notNullable();
+            table.string("name_of_beneficiary").notNullable();
+            table.string("gender").notNullable();
+            table.string("category").notNullable();
+            table.double("area_planted_has").notNullable();
+            table.string("variety").notNullable();
+            table
+              .double("no_of_seed_derived_pm_distributed")
+              .notNullable();
+            table.string("remarks").nullable();
             table.timestamps(true, true);
             table
               .integer("imported_by")

@@ -57,7 +57,7 @@ class AbacaDiseaseManagementService {
           !row["Category"] ||
           !row["Actual Area (ha)"] ||
           !row["Effective Area"] ||
-          !row["Disease Percentage During Eradication (percentage)"] ||
+          !row["Disease Incidence During Eradication (percentage)"] ||
           !row["Area Treated/ Eradicated"] ||
           !row["Date Eradicated"]
         ) {
@@ -112,13 +112,13 @@ class AbacaDiseaseManagementService {
       const rowsAdded = [];
       for (const row of rowsToAdd) {
         await store.add(row);
-        await logs.add({
-          uuid: userId,
-          module: moduleName,
-          data: row,
-          action: `imported a new row in ${moduleName} table`,
-          ...body,
-        });
+        // await logs.add({
+        //   uuid: userId,
+        //   module: moduleName,
+        //   data: row,
+        //   action: `imported a new row in ${moduleName} table`,
+        //   ...body,
+        // });
         rowsAdded.push(row);
       }
       return res.status(200).json({
@@ -219,18 +219,29 @@ class AbacaDiseaseManagementService {
       const startDate = req.query.start;
       const endDate = req.query.end;
       const search = req.query.search;
+
       let table;
-      let graph = [];
+      let lineGraph = [];
+      let barGraph = [];
+
       const hasData = await store.getAll();
+
       if (hasData.length > 0) {
-        graph = await store.getGraph(region, startDate, endDate, search);
+        lineGraph = await store.getLineGraph(
+          region,
+          startDate,
+          endDate,
+          search
+        );
+        barGraph = await store.getBarGraph(region, startDate, endDate, search);
         table = await store.search(region, startDate, endDate, search);
       } else {
         table = await store.getAll();
       }
       return res.status(200).send({
         success: true,
-        graph: graph,
+        lineGraph: lineGraph,
+        barGraph: barGraph,
         table: table,
       });
     } catch (error) {

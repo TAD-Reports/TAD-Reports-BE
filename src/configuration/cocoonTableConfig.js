@@ -15,7 +15,6 @@ module.exports = {
     dateOfRearing: 'date_of_rearing',
     totalProductionInKg: 'total_production_in_kg',
     valueInPhp: 'value_in_php',
-    stats: 'status',
     importedBy: 'imported_by'
     // Add other column names here if necessary
   },

@@ -76,10 +76,11 @@ class TrainingService {
           row['End Date'] = convertExcelDate(row['End Date']);
         }
         const regionValue = row["Region"];
-        if (!regionValue.startsWith("Region ")) {
+        if (!regionValue.startsWith("Regional Office ")) {
           throw new BadRequestError(
-            `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
-            }. The value should start with Region (e.g., 'Region 1', or 'Region 13').`
+            `Invalid value found in the Region column of Excel row ${
+              i + headerRowIndex + 2
+            }. The value should start with Regional Office (e.g., 'Regional Office 1', or 'Regional Office 13').`
           );
         }
         const rowKey = JSON.stringify(row);
@@ -203,7 +204,6 @@ class TrainingService {
     }
   }
 
-  // Get Graph Data
   async getData(req, res, next) {
     try {
       const store = new Store(req.db);
@@ -211,26 +211,29 @@ class TrainingService {
       const startDate = req.query.start;
       const endDate = req.query.end;
       const search = req.query.search;
+
       let table;
-      let graph = [];
+      let lineGraph = [];
+      let barGraph = [];
+
       const hasData = await store.getAll();
+
       if (hasData.length > 0) {
-        graph = await store.getGraph(
+        lineGraph = await store.getLineGraph(
           region,
           startDate,
           endDate,
           search
         );
+        barGraph = await store.getBarGraph(region, startDate, endDate, search);
+        table = await store.search(region, startDate, endDate, search);
+      } else {
+        table = await store.getAll();
       }
-      // if (!region && !startDate && !endDate && !search) {
-      //   table = await store.getAll();
-      // } else {
-        
-      // }
-      table = await store.search(region, startDate, endDate, search);
       return res.status(200).send({
         success: true,
-        graph: graph,
+        lineGraph: lineGraph,
+        barGraph: barGraph,
         table: table,
       });
     } catch (error) {

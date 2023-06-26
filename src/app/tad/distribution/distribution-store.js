@@ -223,8 +223,6 @@ class DistributionStore {
     return formattedResult;
   }
 
-
-
   async getBarGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);

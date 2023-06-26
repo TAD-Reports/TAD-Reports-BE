@@ -8,11 +8,11 @@ const {
   FileUploadError,
   errorHandler,
 } = require("../../../middlewares/errors");
-const moduleName = 'Cocoon';
+const moduleName = "Cocoon";
 const userId = 1;
 
 class CocoonService {
-  constructor(store) { }
+  constructor(store) {}
 
   // Add
   async add(req, res, next) {
@@ -22,22 +22,24 @@ class CocoonService {
       const body = req.body;
       //const userId = req.auth.id; // Get user ID using auth
       if (!req.file) {
-        throw new FileUploadError('No file uploaded');
+        throw new FileUploadError("No file uploaded");
       }
       const file = req.file;
       const fileContents = file.buffer;
-      const workbook = XLSX.read(fileContents, { type: 'buffer' });
+      const workbook = XLSX.read(fileContents, { type: "buffer" });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       let headerRowIndex = 0;
-      const range = XLSX.utils.decode_range(sheet['!ref']);
+      const range = XLSX.utils.decode_range(sheet["!ref"]);
       for (let row = range.s.r; row <= range.e.r; row++) {
         const cell = sheet[XLSX.utils.encode_cell({ r: row, c: 0 })];
-        if (cell && cell.v === 'Report Date') {
+        if (cell && cell.v === "Report Date") {
           headerRowIndex = row;
           break;
         }
       }
-      const jsonData = XLSX.utils.sheet_to_json(sheet, { range: headerRowIndex });
+      const jsonData = XLSX.utils.sheet_to_json(sheet, {
+        range: headerRowIndex,
+      });
       const uniqueRows = new Map();
       const duplicateRows = [];
       const existingRows = [];
@@ -59,30 +61,27 @@ class CocoonService {
           !row["Value In Php"]
         ) {
           throw new BadRequestError(
-            `Incomplete data found in Excel row ${i + headerRowIndex + 2
+            `Incomplete data found in Excel row ${
+              i + headerRowIndex + 2
             } or below`
           );
         }
         row.imported_by = body.imported_by;
-        if (
-          row["Report Date"] &&
-          typeof row["Report Date"] === "number"
-        ) {
+        if (row["Report Date"] && typeof row["Report Date"] === "number") {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
         }
         if (
           row["Date of Rearing"] &&
           typeof row["Date of Rearing"] === "number"
         ) {
-          row["Date of Rearing"] = convertExcelDate(
-            row["Date of Rearing"]
-          );
+          row["Date of Rearing"] = convertExcelDate(row["Date of Rearing"]);
         }
         const regionValue = row["Region"];
-        if (!regionValue.startsWith("Region ")) {
+        if (!regionValue.startsWith("Regional Office ")) {
           throw new BadRequestError(
-            `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
-            }. The value should start with "Regional Office".`
+            `Invalid value found in the Region column of Excel row ${
+              i + headerRowIndex + 2
+            }. The value should start with Regional Office (e.g., 'Regional Office 1', or 'Regional Office 13').`
           );
         }
         const rowKey = JSON.stringify(row);
@@ -117,7 +116,7 @@ class CocoonService {
           module: moduleName,
           data: row,
           action: `imported a new row in ${moduleName} table`,
-          ...body
+          ...body,
         });
         rowsAdded.push(row);
       }
@@ -194,18 +193,18 @@ class CocoonService {
       const result = await store.delete(uuid);
       //const userId = req.auth.id; // Get user ID using auth
       if (result === 0) {
-        throw new NotFoundError('Data Not Found');
+        throw new NotFoundError("Data Not Found");
       }
       logs.add({
         uuid: userId,
         module: moduleName,
         action: `deleted a row in ${moduleName} table`,
         data: result,
-        ...body
+        ...body,
       });
       return res.status(202).send({
         success: true,
-        message: 'Deleted successfuly'
+        message: "Deleted successfuly",
       });
     } catch (error) {
       next(error);
@@ -220,32 +219,35 @@ class CocoonService {
       const startDate = req.query.start;
       const endDate = req.query.end;
       const search = req.query.search;
+
       let table;
-      let graph = [];
+      let lineGraph = [];
+      let barGraph = [];
+
       const hasData = await store.getAll();
+
       if (hasData.length > 0) {
-        graph = await store.getGraph(
+        lineGraph = await store.getLineGraph(
           region,
           startDate,
           endDate,
           search
         );
+        barGraph = await store.getBarGraph(region, startDate, endDate, search);
         table = await store.search(region, startDate, endDate, search);
-      }
-      else {
+      } else {
         table = await store.getAll();
       }
       return res.status(200).send({
         success: true,
-        graph: graph,
+        lineGraph: lineGraph,
+        barGraph: barGraph,
         table: table,
       });
     } catch (error) {
       next(error);
     }
   }
-
-
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format

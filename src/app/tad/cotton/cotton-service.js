@@ -8,11 +8,11 @@ const {
   FileUploadError,
   errorHandler,
 } = require("../../../middlewares/errors");
-const moduleName = 'Cotton';
+const moduleName = "Cotton";
 const userId = 1;
 
 class CottonService {
-  constructor(store) { }
+  constructor(store) {}
 
   // Add
   async add(req, res, next) {
@@ -57,34 +57,28 @@ class CottonService {
           !row["Quantity of Cotton Seeds Given"] ||
           !row["Area Planted (ha)"] ||
           !row["Date Planted"] ||
-          !row["Seed Cotton Harvested"] || 
+          !row["Seed Cotton Harvested"] ||
           !row["Variety"]
         ) {
           throw new BadRequestError(
-            `Incomplete data found in Excel row ${i + headerRowIndex + 2
+            `Incomplete data found in Excel row ${
+              i + headerRowIndex + 2
             } or below`
           );
         }
         row.imported_by = body.imported_by;
-        if (
-          row["Report Date"] &&
-          typeof row["Report Date"] === "number"
-        ) {
+        if (row["Report Date"] && typeof row["Report Date"] === "number") {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
         }
-        if (
-          row["Date Planted"] &&
-          typeof row["Date Planted"] === "number"
-        ) {
-          row["Date Planted"] = convertExcelDate(
-            row["Date Planted"]
-          );
+        if (row["Date Planted"] && typeof row["Date Planted"] === "number") {
+          row["Date Planted"] = convertExcelDate(row["Date Planted"]);
         }
         const regionValue = row["Region"];
-        if (!regionValue.startsWith("Region ")) {
+        if (!regionValue.startsWith("Regional Office ")) {
           throw new BadRequestError(
-            `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
-            }. The value should start with "Regional Office".`
+            `Invalid value found in the Region column of Excel row ${
+              i + headerRowIndex + 2
+            }. The value should start with Regional Office (e.g., 'Regional Office 1', or 'Regional Office 13').`
           );
         }
 
@@ -127,7 +121,7 @@ class CottonService {
           module: moduleName,
           data: row,
           action: `imported a new row in ${moduleName} table`,
-          ...body
+          ...body,
         });
         rowsAdded.push(row);
       }
@@ -203,18 +197,18 @@ class CottonService {
       const result = await store.delete(uuid);
       //const userId = req.auth.id; // Get user ID using auth
       if (result === 0) {
-        throw new NotFoundError('Data Not Found');
+        throw new NotFoundError("Data Not Found");
       }
       logs.add({
         uuid: userId,
         module: moduleName,
         action: `deleted a row in ${moduleName} table`,
         data: result,
-        ...body
+        ...body,
       });
       return res.status(202).send({
         success: true,
-        message: 'Deleted successfuly'
+        message: "Deleted successfuly",
       });
     } catch (error) {
       next(error);
@@ -233,12 +227,7 @@ class CottonService {
       let graph = [];
       const hasData = await store.getAll();
       if (hasData.length > 0) {
-        graph = await store.getGraph(
-          region,
-          startDate,
-          endDate,
-          search
-        );
+        graph = await store.getGraph(region, startDate, endDate, search);
         table = await store.search(region, startDate, endDate, search);
       } else {
         table = await store.getAll();
@@ -252,7 +241,6 @@ class CottonService {
       next(error);
     }
   }
-
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format

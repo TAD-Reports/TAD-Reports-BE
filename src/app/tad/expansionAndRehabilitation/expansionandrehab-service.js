@@ -69,10 +69,11 @@ class ExpansionService {
           row['Report Date'] = convertExcelDate(row['Report Date']);
         }
         const regionValue = row["Region"];
-        if (!regionValue.startsWith("Region ")) {
+        if (!regionValue.startsWith("Regional Office ")) {
           throw new BadRequestError(
-            `Invalid value found in the Region column of Excel row ${i + headerRowIndex + 2
-            }. The value should start with Region (e.g., 'Region 1', or 'Region 13').`
+            `Invalid value found in the Region column of Excel row ${
+              i + headerRowIndex + 2
+            }. The value should start with Regional Office (e.g., 'Regional Office 1', or 'Regional Office 13').`
           );
         }
         const rowKey = JSON.stringify(row);

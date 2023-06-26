@@ -126,15 +126,77 @@ class TrainingStore {
   }
 
 
-  async getGraph(region, startDate, endDate, search) {
+  // async getGraph(region, startDate, endDate, search) {
+  //   const formattedStartDate = formatDate(startDate);
+  //   const formattedEndDate = formatDate(endDate);
+  //   const maxDate = await this.getMaxDate();
+  //   const firstDate = firstDateOfMonth(maxDate);
+  //   const lastDate = lastDateOfMonth(maxDate);
+  //   const query = this.db(this.table)
+  //     .select(this.cols.gender)
+  //     .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
+  //     .sum(`${this.cols.participants} AS total_participants`)
+  //     .groupBy(
+  //       this.cols.gender,
+  //       this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+  //       this.cols.reportDate
+  //     )
+  //     .orderBy(this.cols.reportDate);
+  //   if (startDate && endDate) {
+  //     query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+  //   } else {
+  //     query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+  //   }
+  //   if (region) {
+  //     query.where(this.cols.region, region);
+  //   }
+  //   if (search) {
+  //     const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+  //     query.andWhere((builder) => {
+  //       builder.where((innerBuilder) => {
+  //         Object.keys(columns).forEach((column) => {
+  //           innerBuilder.orWhere(column, 'like', `%${search}%`);
+  //         });
+  //       });
+  //     });
+  //   }
+  //   const formattedResult = await query.then((rows) => {
+  //     const formattedData = rows.reduce((acc, curr) => {
+  //       const index = acc.findIndex((item) => item.name === curr.gender);
+  //       if (index !== -1) {
+  //         acc[index].months[curr.month_year] = curr.total_participants;
+  //       } else {
+  //         acc.push({
+  //           name: curr.gender,
+  //           months: {
+  //             [curr.month_year]: curr.total_participants,
+  //           },
+  //         });
+  //       }
+  //       return acc;
+  //     }, []);
+  //     const updatedFormattedData = formattedData.map((item) => {
+  //       const months = item.months;
+  //       const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+  //       return { ...item, months: { ...months, total } };
+  //     });
+  //     return updatedFormattedData;
+  //   });
+  //   return formattedResult;
+  // }
+  async getLineGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
+    const firstDate = sixMonthBehindDate(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select(this.cols.gender)
-      .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
+      .select(
+        this.db.raw(
+          `CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`
+        )
+      )
       .sum(`${this.cols.participants} AS total_participants`)
       .groupBy(
         this.cols.gender,
@@ -143,7 +205,10 @@ class TrainingStore {
       )
       .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+      query.whereBetween(this.cols.reportDate, [
+        formattedStartDate,
+        formattedEndDate,
+      ]);
     } else {
       query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
@@ -151,36 +216,129 @@ class TrainingStore {
       query.where(this.cols.region, region);
     }
     if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+      const columns = await this.db(this.table).columnInfo();
       query.andWhere((builder) => {
         builder.where((innerBuilder) => {
           Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
+            innerBuilder.orWhere(column, "like", `%${search}%`);
           });
         });
       });
     }
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.name === curr.gender);
+        const index = acc.findIndex(
+          (item) => item.id === curr.gender
+        );
         if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.total_participants;
+          acc[index].data.push({
+            x: curr.month_year,
+            y: curr.total_participants,
+          });
         } else {
           acc.push({
-            name: curr.gender,
-            months: {
-              [curr.month_year]: curr.total_participants,
-            },
+            id: curr.gender,
+            data: [
+              {
+                x: curr.month_year,
+                y: curr.total_participants,
+              },
+            ],
           });
         }
         return acc;
       }, []);
-      const updatedFormattedData = formattedData.map((item) => {
-        const months = item.months;
-        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
-        return { ...item, months: { ...months, total } };
+
+      // Find unique x values
+      const uniqueXValues = new Set();
+      formattedData.forEach((item) => {
+        item.data.forEach((dataPoint) => {
+          uniqueXValues.add(dataPoint.x);
+        });
       });
-      return updatedFormattedData;
+
+      // Add missing x values with y = 0
+      formattedData.forEach((item) => {
+        const missingXValues = Array.from(uniqueXValues).filter(
+          (x) => !item.data.find((dataPoint) => dataPoint.x === x)
+        );
+        missingXValues.forEach((x) => {
+          item.data.push({ x, y: 0 });
+        });
+
+        // Sort data array based on x values
+        item.data.sort((a, b) => {
+          const dateA = new Date(a.x);
+          const dateB = new Date(b.x);
+          return dateA - dateB;
+        });
+      });
+
+      return formattedData;
+    });
+
+    return formattedResult;
+  }
+
+  async getBarGraph(region, startDate, endDate, search) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = sixMonthBehindDate(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
+    const query = this.db(this.table)
+      .select(this.cols.gender)
+      .select(
+        this.db.raw(
+          `CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`
+        )
+      )
+      .sum(`${this.cols.participants} AS total_participants`)
+      .groupBy(
+        this.cols.gender,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
+    if (startDate && endDate) {
+      query.whereBetween(this.cols.reportDate, [
+        formattedStartDate,
+        formattedEndDate,
+      ]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+    }
+    if (region) {
+      query.where(this.cols.region, region);
+    }
+    if (search) {
+      const columns = await this.db(this.table).columnInfo();
+      query.andWhere((builder) => {
+        builder.where((innerBuilder) => {
+          Object.keys(columns).forEach((column) => {
+            innerBuilder.orWhere(column, "like", `%${search}%`);
+          });
+        });
+      });
+    }
+
+    const formattedResult = await query.then((rows) => {
+      const formattedData = rows.reduce((acc, curr) => {
+        const index = acc.findIndex(
+          (item) => item.name === curr.gender
+        );
+        if (index !== -1) {
+          acc[index][curr.month_year] = curr.total_participants;
+        } else {
+          acc.push({
+            name: curr.gender,
+            [curr.month_year]: curr.total_participants,
+          });
+        }
+        return acc;
+      }, []);
+
+      return formattedData;
     });
     return formattedResult;
   }
@@ -245,6 +403,12 @@ function convertDatesToTimezone(rows, dateFields) {
     });
     return { ...row, ...convertedFields };
   });
+}
+
+function sixMonthBehindDate(date) {
+  const sixMonthsAgo = moment(date).subtract(6, "months");
+  const firstDate = sixMonthsAgo.startOf("month").format("YYYY-MM-DD");
+  return firstDate;
 }
 
 function firstDateOfMonth(date) {

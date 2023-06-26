@@ -121,15 +121,78 @@ class MaterialsStore {
   }
 
 
-  async getGraph(region, startDate, endDate, search) {
+  // async getGraph(region, startDate, endDate, search) {
+  //   const formattedStartDate = formatDate(startDate);
+  //   const formattedEndDate = formatDate(endDate);
+  //   const maxDate = await this.getMaxDate();
+  //   const firstDate = firstDateOfMonth(maxDate);
+  //   const lastDate = lastDateOfMonth(maxDate);
+  //   const query = this.db(this.table)
+  //     .select(this.cols.titleOfIECMaterial)
+  //     .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
+  //     .sum(`${this.cols.noOfCopiesDistributed} AS copies_distributed`)
+  //     .groupBy(
+  //       this.cols.titleOfIECMaterial,
+  //       this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+  //       this.cols.reportDate
+  //     )
+  //     .orderBy(this.cols.reportDate);
+  //   if (startDate && endDate) {
+  //     query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+  //   } else {
+  //     query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+  //   }
+  //   if (region) {
+  //     query.where(this.cols.region, region);
+  //   }
+  //   if (search) {
+  //     const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+  //     query.andWhere((builder) => {
+  //       builder.where((innerBuilder) => {
+  //         Object.keys(columns).forEach((column) => {
+  //           innerBuilder.orWhere(column, 'like', `%${search}%`);
+  //         });
+  //       });
+  //     });
+  //   }
+  //   const formattedResult = await query.then((rows) => {
+  //     const formattedData = rows.reduce((acc, curr) => {
+  //       const index = acc.findIndex((item) => item.name === curr.title_of_iec_material);
+  //       if (index !== -1) {
+  //         acc[index].months[curr.month_year] = curr.copies_distributed;
+  //       } else {
+  //         acc.push({
+  //           name: curr.title_of_iec_material,
+  //           months: {
+  //             [curr.month_year]: curr.copies_distributed,
+  //           },
+  //         });
+  //       }
+  //       return acc;
+  //     }, []);
+  //     const updatedFormattedData = formattedData.map((item) => {
+  //       const months = item.months;
+  //       const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
+  //       return { ...item, months: { ...months, total } };
+  //     });
+  //     return updatedFormattedData;
+  //   });
+  //   return formattedResult;
+  // }
+
+  async getLineGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
+    const firstDate = sixMonthBehindDate(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select(this.cols.titleOfIECMaterial)
-      .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
+      .select(
+        this.db.raw(
+          `CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`
+        )
+      )
       .sum(`${this.cols.noOfCopiesDistributed} AS copies_distributed`)
       .groupBy(
         this.cols.titleOfIECMaterial,
@@ -138,7 +201,10 @@ class MaterialsStore {
       )
       .orderBy(this.cols.reportDate);
     if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+      query.whereBetween(this.cols.reportDate, [
+        formattedStartDate,
+        formattedEndDate,
+      ]);
     } else {
       query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
@@ -146,40 +212,132 @@ class MaterialsStore {
       query.where(this.cols.region, region);
     }
     if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+      const columns = await this.db(this.table).columnInfo();
       query.andWhere((builder) => {
         builder.where((innerBuilder) => {
           Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
+            innerBuilder.orWhere(column, "like", `%${search}%`);
           });
         });
       });
     }
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex((item) => item.name === curr.title_of_iec_material);
+        const index = acc.findIndex(
+          (item) => item.id === curr.title_of_iec_material
+        );
         if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.copies_distributed;
+          acc[index].data.push({
+            x: curr.month_year,
+            y: curr.copies_distributed,
+          });
         } else {
           acc.push({
-            name: curr.title_of_iec_material,
-            months: {
-              [curr.month_year]: curr.copies_distributed,
-            },
+            id: curr.title_of_iec_material,
+            data: [
+              {
+                x: curr.month_year,
+                y: curr.copies_distributed,
+              },
+            ],
           });
         }
         return acc;
       }, []);
-      const updatedFormattedData = formattedData.map((item) => {
-        const months = item.months;
-        const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
-        return { ...item, months: { ...months, total } };
+
+      // Find unique x values
+      const uniqueXValues = new Set();
+      formattedData.forEach((item) => {
+        item.data.forEach((dataPoint) => {
+          uniqueXValues.add(dataPoint.x);
+        });
       });
-      return updatedFormattedData;
+
+      // Add missing x values with y = 0
+      formattedData.forEach((item) => {
+        const missingXValues = Array.from(uniqueXValues).filter(
+          (x) => !item.data.find((dataPoint) => dataPoint.x === x)
+        );
+        missingXValues.forEach((x) => {
+          item.data.push({ x, y: 0 });
+        });
+
+        // Sort data array based on x values
+        item.data.sort((a, b) => {
+          const dateA = new Date(a.x);
+          const dateB = new Date(b.x);
+          return dateA - dateB;
+        });
+      });
+
+      return formattedData;
     });
+
     return formattedResult;
   }
 
+  async getBarGraph(region, startDate, endDate, search) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = sixMonthBehindDate(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
+    const query = this.db(this.table)
+      .select(this.cols.titleOfIECMaterial)
+      .select(
+        this.db.raw(
+          `CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`
+        )
+      )
+      .sum(`${this.cols.noOfCopiesDistributed} AS copies_distributed`)
+      .groupBy(
+        this.cols.titleOfIECMaterial,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
+    if (startDate && endDate) {
+      query.whereBetween(this.cols.reportDate, [
+        formattedStartDate,
+        formattedEndDate,
+      ]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+    }
+    if (region) {
+      query.where(this.cols.region, region);
+    }
+    if (search) {
+      const columns = await this.db(this.table).columnInfo();
+      query.andWhere((builder) => {
+        builder.where((innerBuilder) => {
+          Object.keys(columns).forEach((column) => {
+            innerBuilder.orWhere(column, "like", `%${search}%`);
+          });
+        });
+      });
+    }
+
+    const formattedResult = await query.then((rows) => {
+      const formattedData = rows.reduce((acc, curr) => {
+        const index = acc.findIndex(
+          (item) => item.name === curr.title_of_iec_material
+        );
+        if (index !== -1) {
+          acc[index][curr.month_year] = curr.copies_distributed;
+        } else {
+          acc.push({
+            name: curr.title_of_iec_material,
+            [curr.month_year]: curr.copies_distributed,
+          });
+        }
+        return acc;
+      }, []);
+
+      return formattedData;
+    });
+    return formattedResult;
+  }
 
   async search(region, startDate, endDate, search) {
     //const formattedDate = formatDate(search); // Format the date string
@@ -240,6 +398,12 @@ function convertDatesToTimezone(rows, dateFields) {
     });
     return { ...row, ...convertedFields };
   });
+}
+
+function sixMonthBehindDate(date) {
+  const sixMonthsAgo = moment(date).subtract(6, "months");
+  const firstDate = sixMonthsAgo.startOf("month").format("YYYY-MM-DD");
+  return firstDate;
 }
 
 function firstDateOfMonth(date) {

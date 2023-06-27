@@ -405,8 +405,8 @@ const userDao =
             username: "hr",
             password:
               "$2b$10$ZEvsCQvjjbfkD.Zmwac/AegakD9cDVknJPTK5onPl/STsXtaKxYFG",
-            firstname: "Ray",
-            lastname: "Hernandez",
+            firstname: "Tony",
+            lastname: "Start",
             region: "all",
             role: "hr",
           },

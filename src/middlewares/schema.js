@@ -276,9 +276,7 @@ const userDao =
             table.string("category").notNullable();
             table.double("area_planted_has").notNullable();
             table.string("variety").notNullable();
-            table
-              .double("no_of_seed_derived_pm_distributed")
-              .notNullable();
+            table.double("no_of_seed_derived_pm_distributed").notNullable();
             table.string("remarks").nullable();
             table.timestamps(true, true);
             table
@@ -393,15 +391,26 @@ const userDao =
             table.timestamps(true, true);
           });
 
-        await req.db("users").insert({
-          username: "sa",
-          password:
-            "$2b$10$aoZz7ydLZrckRUJivZApvOKw5g8JYKMl4blpDlGib48Io651w166G",
-          firstname: "Ray",
-          lastname: "Ray",
-          region: "all",
-          role: "superadmin",
-        });
+        await req.db("users").insert([
+          {
+            username: "sa",
+            password:
+              "$2b$10$aoZz7ydLZrckRUJivZApvOKw5g8JYKMl4blpDlGib48Io651w166G",
+            firstname: "Ray",
+            lastname: "Hernandez",
+            region: "all",
+            role: "superadmin",
+          },
+          {
+            username: "hr",
+            password:
+              "$2b$10$ZEvsCQvjjbfkD.Zmwac/AegakD9cDVknJPTK5onPl/STsXtaKxYFG",
+            firstname: "Ray",
+            lastname: "Hernandez",
+            region: "all",
+            role: "hr",
+          },
+        ]);
       } catch (error) {
         console.error("Error creating user tables:", error);
         throw new Error("Error creating user tables");

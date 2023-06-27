@@ -18,6 +18,5 @@ module.exports = {
     areaTreatedEradicated: 'area_treated_eradicated',
     dateEradicated: 'date_eradicated',
     remarks: 'remarks',
-    importedBy: 'imported_by'
   },
 };

@@ -197,7 +197,7 @@ class ExpansionService {
     }
   }
 
-  // Get Graph Data
+   // Get Graph Data
   async getData(req, res, next) {
     try {
       const store = new Store(req.db);
@@ -206,7 +206,8 @@ class ExpansionService {
       const endDate = req.query.end;
       const search = req.query.search;
 
-      let table;
+      let total = 0;
+      let table = [];
       let lineGraph = [];
       let barGraph = [];
 
@@ -221,11 +222,18 @@ class ExpansionService {
         );
         barGraph = await store.getBarGraph(region, startDate, endDate, search);
         table = await store.search(region, startDate, endDate, search);
+        total = await store.totalBeneficiary(
+          region,
+          startDate,
+          endDate,
+          search
+        );
       } else {
         table = await store.getAll();
       }
       return res.status(200).send({
         success: true,
+        total: total,
         lineGraph: lineGraph,
         barGraph: barGraph,
         table: table,
@@ -234,7 +242,6 @@ class ExpansionService {
       next(error);
     }
   }
-
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format

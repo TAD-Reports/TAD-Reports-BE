@@ -16,6 +16,5 @@ module.exports = {
       variety: 'variety',
       noOfSeedDerivedPMDistributed: 'no_of_seed_derived_pm_distributed',
       remarks: 'remarks',
-      importedBy: 'imported_by'
     },
   };

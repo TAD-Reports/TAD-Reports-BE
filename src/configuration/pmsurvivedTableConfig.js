@@ -16,7 +16,5 @@ module.exports = {
       pmPlanted: 'no_of_pm_planted',
       pmSurvived: 'no_of_pm_survived',
       remarks: 'remarks',
-      importedBy: 'imported_by'
-      // Add other column names here if necessary
     },
   };

@@ -9,105 +9,106 @@ class MaterialsStore {
     this.cols = TableConfig.columnNames;
   }
 
-
   async add(row) {
     return await this.db(this.table).insert({
-      report_date: row['Report Date'],
-      title_of_iec_material: row['Title of IEC Material'],
-      no_of_copies_distributed: row['No. of Copies Distributed'],
-      region: row['Region'],
-      province: row['Province'],
-      district: row['District'],
-      municipality: row['Municipality'],
-      barangay: row['Barangay'],
-      gender: row['Gender'],
-      category: row['Category'],
-      date_distributed: row['Date Distributed'],
+      report_date: row["Report Date"],
+      title_of_iec_material: row["Title of IEC Material"],
+      no_of_copies_distributed: row["No. of Copies Distributed"],
+      region: row["Region"],
+      province: row["Province"],
+      district: row["District"],
+      municipality: row["Municipality"],
+      barangay: row["Barangay"],
+      gender: row["Gender"],
+      category: row["Category"],
+      date_distributed: row["Date Distributed"],
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
 
-
   async update(uuid, body) {
     // Perform the update operation
-    await this.db(this.table)
-      .where(this.cols.id, uuid)
-      .update({
-        report_date: body.report_date,
-        title_of_iec_material: body.title_of_iec_material,
-        no_of_copies_distributed: body.no_of_copies_distributed,
-        region: body.region,
-        province: body.province,
-        district: body.district,
-        municipality: body.municipality,
-        barangay: body.barangay,
-        gender: body.gender,
-        category: body.category,
-        date_distributed: body.date_distributed,
-      });
+    await this.db(this.table).where(this.cols.id, uuid).update({
+      report_date: body.report_date,
+      title_of_iec_material: body.title_of_iec_material,
+      no_of_copies_distributed: body.no_of_copies_distributed,
+      region: body.region,
+      province: body.province,
+      district: body.district,
+      municipality: body.municipality,
+      barangay: body.barangay,
+      gender: body.gender,
+      category: body.category,
+      date_distributed: body.date_distributed,
+    });
 
     // Fetch the updated rows
     const updatedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
-      .select('*')
+      .select("*")
       .first();
 
     return updatedRows;
   }
 
-
   async getExisting(row) {
     const excludedFields = ["imported_by", "District"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
-      const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '').replace('.', '');
+      const columnName = column
+        .toLowerCase()
+        .replace(/ /g, "_")
+        .replace("/", "")
+        .replace("(", "")
+        .replace(")", "")
+        .replace(".", "");
       if (!excludedFields.includes(column)) {
         query.where(columnName, value);
       }
     }
-    const existingRows = await query.select('*');
+    const existingRows = await query.select("*");
     return existingRows.length > 0 ? existingRows : null;
   }
-
 
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
       .where(this.cols.id, uuid);
-    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateDistributed]);
+    const convertedResults = convertDatesToTimezone(results, [
+      this.cols.reportDate,
+      this.cols.dateDistributed,
+    ]);
     return convertedResults;
   }
-
 
   async getAll() {
     const results = await this.db(this.table)
       .select()
       .orderBy([
         { column: this.cols.region },
-        { column: this.cols.reportDate, order: 'desc' }
+        { column: this.cols.reportDate, order: "desc" },
       ]);
     if (!results) {
       return null;
     }
-    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.dateDistributed]);
+    const convertedResults = convertDatesToTimezone(results, [
+      this.cols.reportDate,
+      this.cols.dateDistributed,
+    ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
       .then((columns) => Object.keys(columns));
     return results.length > 0 ? convertedResults : { columnNames };
   }
 
-
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
-      .select('*')
+      .select("*")
       .first();
-    await this.db(this.table)
-      .where(this.cols.id, uuid)
-      .del();
+    await this.db(this.table).where(this.cols.id, uuid).del();
     return deletedRows;
   }
-
 
   async getMaxDate() {
     const result = await this.db(this.table)
@@ -116,10 +117,9 @@ class MaterialsStore {
     if (result.max_date === null) {
       return null;
     }
-    const convertedResults = convertDatesToTimezone([result], ['max_date']);
+    const convertedResults = convertDatesToTimezone([result], ["max_date"]);
     return convertedResults[0].max_date;
   }
-
 
   // async getGraph(region, startDate, endDate, search) {
   //   const formattedStartDate = formatDate(startDate);
@@ -350,13 +350,16 @@ class MaterialsStore {
       .select()
       .orderBy([
         { column: this.cols.region },
-        { column: this.cols.reportDate, order: 'desc' }
+        { column: this.cols.reportDate, order: "desc" },
       ]);
     if (!maxDate) {
       return [];
     }
     if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+      query.whereBetween(this.cols.reportDate, [
+        formattedStartDate,
+        formattedEndDate,
+      ]);
     } else {
       query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
@@ -368,16 +371,55 @@ class MaterialsStore {
       query.andWhere((builder) => {
         builder.where((innerBuilder) => {
           Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
+            innerBuilder.orWhere(column, "like", `%${search}%`);
           });
         });
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.dateDistributed]);
+    const convertedResults = convertDatesToTimezone(
+      results.map((row) => row),
+      [this.cols.reportDate, this.cols.dateDistributed]
+    );
     return convertedResults;
   }
-  
+
+  async totalBeneficiary(region, startDate, endDate, search) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
+    const result = await this.db(this.table)
+      .count(`${this.cols.coopName} AS count`)
+      .where((query) => {
+        if (!maxDate) {
+          query.whereRaw("false");
+        } else if (startDate && endDate) {
+          query.whereBetween(this.cols.reportDate, [
+            formattedStartDate,
+            formattedEndDate,
+          ]);
+        } else {
+          query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+        }
+
+        if (region) {
+          query.where(this.cols.region, region);
+        }
+
+        if (search) {
+          query.andWhere((builder) => {
+            Object.values(this.cols).forEach((column) => {
+              builder.orWhere(column, "like", `%${search}%`);
+            });
+          });
+        }
+      })
+      .first();
+    const count = result ? result.count : 0;
+    return count;
+  }
 }
 
 function formatDate(dateString) {

@@ -16,7 +16,5 @@ module.exports = {
     endDate: 'end_date',
     participants: 'participants',
     remarks: 'remarks',
-    importedBy: 'imported_by'
-    // Add other column names here if necessary
   },
 };

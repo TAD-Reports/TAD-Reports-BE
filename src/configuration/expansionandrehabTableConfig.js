@@ -15,7 +15,5 @@ module.exports = {
     areaPlantedHas: 'area_planted_has',
     variety: 'variety',
     sourceOfPm: 'source_of_pm',
-    importedBy: 'imported_by'
-    // Add other column names here if necessary
   },
 };

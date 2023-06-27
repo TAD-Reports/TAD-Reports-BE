@@ -11,108 +11,111 @@ class TrainingStore {
 
   async add(row) {
     return await this.db(this.table).insert({
-      report_date: row['Report Date'],
-      conduct_of_training: row['Conduct of Training'],
-      region: row['Region'],
-      province: row['Province'],
-      district: row['District'],
-      municipality: row['Municipality'],
-      barangay: row['Barangay'],
-      gender: row['Gender'],
-      age_group: row['Age Group'],
-      venue: row['Venue'],
-      start_date: row['Start Date'],
-      end_date: row['End Date'],
-      participants: row['Participants'],
-      remarks: row['Remarks'],
+      report_date: row["Report Date"],
+      conduct_of_training: row["Conduct of Training"],
+      region: row["Region"],
+      province: row["Province"],
+      district: row["District"],
+      municipality: row["Municipality"],
+      barangay: row["Barangay"],
+      gender: row["Gender"],
+      age_group: row["Age Group"],
+      venue: row["Venue"],
+      start_date: row["Start Date"],
+      end_date: row["End Date"],
+      participants: row["Participants"],
+      remarks: row["Remarks"],
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
 
-
   async update(uuid, body) {
     // Perform the update operation
-    await this.db(this.table)
-      .where(this.cols.id, uuid)
-      .update({
-        report_date: body.report_date,
-        conduct_of_training: body.conduct_of_training,
-        region: body.region,
-        province: body.province,
-        district: body.district,
-        municipality: body.municipality,
-        barangay: body.barangay,
-        gender: body.gender,
-        age_group: body.age_group,
-        venue: body.venue,
-        start_date: body.start_date,
-        end_date: body.end_date,
-        participants: body.participants,
-        remarks: body.remarks,
-      });
+    await this.db(this.table).where(this.cols.id, uuid).update({
+      report_date: body.report_date,
+      conduct_of_training: body.conduct_of_training,
+      region: body.region,
+      province: body.province,
+      district: body.district,
+      municipality: body.municipality,
+      barangay: body.barangay,
+      gender: body.gender,
+      age_group: body.age_group,
+      venue: body.venue,
+      start_date: body.start_date,
+      end_date: body.end_date,
+      participants: body.participants,
+      remarks: body.remarks,
+    });
 
     // Fetch the updated rows
     const updatedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
-      .select('*')
+      .select("*")
       .first();
 
     return updatedRows;
   }
 
-
   async getExisting(row) {
     const excludedFields = ["imported_by", "District", "Remarks"];
     const query = this.db(this.table);
     for (const [column, value] of Object.entries(row)) {
-      const columnName = column.toLowerCase().replace(/ /g, '_').replace('/', '').replace('(', '').replace(')', '');
+      const columnName = column
+        .toLowerCase()
+        .replace(/ /g, "_")
+        .replace("/", "")
+        .replace("(", "")
+        .replace(")", "");
       if (!excludedFields.includes(column)) {
         query.where(columnName, value);
       }
     }
-    const existingRows = await query.select('*');
+    const existingRows = await query.select("*");
     return existingRows.length > 0 ? existingRows : null;
   }
-
 
   async getByUUID(uuid) {
     const results = await this.db(this.table)
       .select()
       .where(this.cols.id, uuid);
-    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.startDate, this.endDate]);
+    const convertedResults = convertDatesToTimezone(results, [
+      this.cols.reportDate,
+      this.cols.startDate,
+      this.endDate,
+    ]);
     return convertedResults;
   }
-
 
   async getAll() {
     const results = await this.db(this.table)
       .select()
       .orderBy([
         { column: this.cols.region },
-        { column: this.cols.reportDate, order: 'desc' }
+        { column: this.cols.reportDate, order: "desc" },
       ]);
     if (!results) {
       return null;
     }
-    const convertedResults = convertDatesToTimezone(results, [this.cols.reportDate, this.cols.startDate, this.endDate]);
+    const convertedResults = convertDatesToTimezone(results, [
+      this.cols.reportDate,
+      this.cols.startDate,
+      this.endDate,
+    ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
       .then((columns) => Object.keys(columns));
     return results.length > 0 ? convertedResults : { columnNames };
   }
 
-
   async delete(uuid) {
     const deletedRows = await this.db(this.table)
       .where(this.cols.id, uuid)
-      .select('*')
+      .select("*")
       .first();
-    await this.db(this.table)
-      .where(this.cols.id, uuid)
-      .del();
+    await this.db(this.table).where(this.cols.id, uuid).del();
     return deletedRows;
   }
-
 
   async getMaxDate() {
     const result = await this.db(this.table)
@@ -121,10 +124,9 @@ class TrainingStore {
     if (result.max_date === null) {
       return null;
     }
-    const convertedResults = convertDatesToTimezone([result], ['max_date']);
+    const convertedResults = convertDatesToTimezone([result], ["max_date"]);
     return convertedResults[0].max_date;
   }
-
 
   // async getGraph(region, startDate, endDate, search) {
   //   const formattedStartDate = formatDate(startDate);
@@ -227,9 +229,7 @@ class TrainingStore {
     }
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex(
-          (item) => item.id === curr.gender
-        );
+        const index = acc.findIndex((item) => item.id === curr.gender);
         if (index !== -1) {
           acc[index].data.push({
             x: curr.month_year,
@@ -324,9 +324,7 @@ class TrainingStore {
 
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
-        const index = acc.findIndex(
-          (item) => item.name === curr.gender
-        );
+        const index = acc.findIndex((item) => item.name === curr.gender);
         if (index !== -1) {
           acc[index][curr.month_year] = curr.total_participants;
         } else {
@@ -343,7 +341,6 @@ class TrainingStore {
     return formattedResult;
   }
 
-
   async search(region, startDate, endDate, search) {
     //const formattedDate = formatDate(search); // Format the date string
     const formattedStartDate = formatDate(startDate);
@@ -355,13 +352,16 @@ class TrainingStore {
       .select()
       .orderBy([
         { column: this.cols.region },
-        { column: this.cols.reportDate, order: 'desc' }
+        { column: this.cols.reportDate, order: "desc" },
       ]);
     if (!maxDate) {
       return [];
     }
     if (startDate && endDate) {
-      query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
+      query.whereBetween(this.cols.reportDate, [
+        formattedStartDate,
+        formattedEndDate,
+      ]);
     } else {
       query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
     }
@@ -373,16 +373,55 @@ class TrainingStore {
       query.andWhere((builder) => {
         builder.where((innerBuilder) => {
           Object.keys(columns).forEach((column) => {
-            innerBuilder.orWhere(column, 'like', `%${search}%`);
+            innerBuilder.orWhere(column, "like", `%${search}%`);
           });
         });
       });
     }
     const results = await query; // Execute the query and retrieve the results
-    const convertedResults = convertDatesToTimezone(results.map(row => row), [this.cols.reportDate, this.cols.startDate, this.cols.endDate ]);
+    const convertedResults = convertDatesToTimezone(
+      results.map((row) => row),
+      [this.cols.reportDate, this.cols.startDate, this.cols.endDate]
+    );
     return convertedResults;
   }
-  
+
+  async totalBeneficiary(region, startDate, endDate, search) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
+    const result = await this.db(this.table)
+      .count(`${this.cols.coopName} AS count`)
+      .where((query) => {
+        if (!maxDate) {
+          query.whereRaw("false");
+        } else if (startDate && endDate) {
+          query.whereBetween(this.cols.reportDate, [
+            formattedStartDate,
+            formattedEndDate,
+          ]);
+        } else {
+          query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+        }
+
+        if (region) {
+          query.where(this.cols.region, region);
+        }
+
+        if (search) {
+          query.andWhere((builder) => {
+            Object.values(this.cols).forEach((column) => {
+              builder.orWhere(column, "like", `%${search}%`);
+            });
+          });
+        }
+      })
+      .first();
+    const count = result ? result.count : 0;
+    return count;
+  }
 }
 
 function formatDate(dateString) {

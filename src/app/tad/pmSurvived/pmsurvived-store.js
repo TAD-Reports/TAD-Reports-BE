@@ -124,7 +124,6 @@ class PmSurvivedStore {
     return convertedResults[0].max_date;
   }
 
-
   async getLineGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
@@ -219,7 +218,6 @@ class PmSurvivedStore {
     return formattedResult;
   }
 
-
   async getBarGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
@@ -282,7 +280,6 @@ class PmSurvivedStore {
     return formattedResult;
   }
 
-
   async search(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
@@ -325,6 +322,43 @@ class PmSurvivedStore {
       [this.cols.reportDate, this.cols.dateReceived]
     );
     return convertedResults;
+  }
+
+  async totalBeneficiary(region, startDate, endDate, search) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = firstDateOfMonth(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
+    const result = await this.db(this.table)
+      .count(`${this.cols.cooperative} AS count`)
+      .where((query) => {
+        if (!maxDate) {
+          query.whereRaw("false");
+        } else if (startDate && endDate) {
+          query.whereBetween(this.cols.reportDate, [
+            formattedStartDate,
+            formattedEndDate,
+          ]);
+        } else {
+          query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+        }
+
+        if (region) {
+          query.where(this.cols.region, region);
+        }
+
+        if (search) {
+          query.andWhere((builder) => {
+            Object.values(this.cols).forEach((column) => {
+              builder.orWhere(column, "like", `%${search}%`);
+            });
+          });
+        }
+      })
+      .first();
+    const count = result ? result.count : 0;
+    return count;
   }
 }
 

@@ -223,18 +223,37 @@ class CottonService {
       const startDate = req.query.start;
       const endDate = req.query.end;
       const search = req.query.search;
-      let table;
-      let graph = [];
+
+      let total = 0;
+      let table = [];
+      let lineGraph = [];
+      let barGraph = [];
+
       const hasData = await store.getAll();
+
       if (hasData.length > 0) {
-        graph = await store.getGraph(region, startDate, endDate, search);
+        lineGraph = await store.getLineGraph(
+          region,
+          startDate,
+          endDate,
+          search
+        );
+        barGraph = await store.getBarGraph(region, startDate, endDate, search);
         table = await store.search(region, startDate, endDate, search);
+        total = await store.totalBeneficiary(
+          region,
+          startDate,
+          endDate,
+          search
+        );
       } else {
         table = await store.getAll();
       }
       return res.status(200).send({
         success: true,
-        graph: graph,
+        total: total,
+        lineGraph: lineGraph,
+        barGraph: barGraph,
         table: table,
       });
     } catch (error) {

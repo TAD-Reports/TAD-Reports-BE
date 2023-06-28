@@ -396,8 +396,8 @@ const userDao =
             username: "sa",
             password:
               "$2b$10$aoZz7ydLZrckRUJivZApvOKw5g8JYKMl4blpDlGib48Io651w166G",
-            firstname: "Ray",
-            lastname: "Hernandez",
+            firstname: "Mark",
+            lastname: "Salem",
             region: "all",
             role: "superadmin",
           },
@@ -408,7 +408,7 @@ const userDao =
             firstname: "Tony",
             lastname: "Start",
             region: "all",
-            role: "hr",
+            role: "hradmin",
           },
         ]);
       } catch (error) {

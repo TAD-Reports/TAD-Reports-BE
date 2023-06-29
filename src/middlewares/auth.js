@@ -1,18 +1,18 @@
 const auth = (req, res, next) => {
-  const jwt = require('jsonwebtoken');
-  const token = req.headers['authorization'];
+  const jwt = require("jsonwebtoken");
+  const token = req.headers["authorization"];
   if (!token) {
-    return res.status(401).send({ 
+    return res.status(401).send({
       success: false,
-      message: 'No authorization header' 
+      message: "No authorization header",
     });
   }
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).send({ 
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err || !decoded) {
+      return res.status(401).send({
         success: false,
-        message: 'Invalid token' 
+        message: "Invalid token",
       });
     }
 
@@ -20,10 +20,6 @@ const auth = (req, res, next) => {
     req.user = { id: decoded.id };
     next();
   });
-}
+};
 
 module.exports = auth;
-
-
-
-

@@ -103,10 +103,6 @@ class JobPositionsService {
       next(error);
     }
   }
-  
-
-
-
 }
 
 module.exports = JobPositionsService;

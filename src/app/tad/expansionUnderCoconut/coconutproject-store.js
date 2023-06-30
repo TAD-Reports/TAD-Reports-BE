@@ -336,7 +336,7 @@ class CoconutStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const result = await this.db(this.table)
-      .count(`${this.cols.coopName} AS count`)
+      .count(`${this.cols.nameOfBeneficiary} AS count`)
       .where((query) => {
         if (!maxDate) {
           query.whereRaw("false");

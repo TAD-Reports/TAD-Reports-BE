@@ -196,16 +196,6 @@ function convertDatesToTimezone(rows, dateFields) {
   });
 }
 
-function firstDateOfMonth(date) {
-  const firstDate = moment(date).startOf("month").format("YYYY-MM-DD");
-  return firstDate;
-}
-
-function lastDateOfMonth(date) {
-  const lastDate = moment(date).endOf("month").format("YYYY-MM-DD");
-  return lastDate;
-}
-
 module.exports = AppFormStore;
 
 //SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

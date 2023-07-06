@@ -391,7 +391,7 @@ class MaterialsStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const result = await this.db(this.table)
-      .count(`${this.cols.coopName} AS count`)
+      .count(`${this.cols.barangay} AS count`)
       .where((query) => {
         if (!maxDate) {
           query.whereRaw("false");

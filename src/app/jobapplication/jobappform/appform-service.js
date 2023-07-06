@@ -11,41 +11,6 @@ const {
 class AppFormService {
   constructor(store) {}
 
-  async uploaad(req, res, next) {
-    try {
-      const attachments = {};
-
-      for (const key in req.files) {
-        if (req.files.hasOwnProperty(key)) {
-          console.log("Key:", key);
-
-          if (
-            req.files[key].fieldname === "pds" ||
-            req.files[key].fieldname === "college" ||
-            req.files[key].fieldname === "masteral" ||
-            req.files[key].fieldname === "doctoral" ||
-            req.files[key].fieldname === "file"
-          ) {
-            attachments[req.files[key].fieldname] = req.files[key];
-            console.log(
-              "Attachment added:",
-              attachments[req.files[key].fieldname]
-            );
-          }
-        }
-      }
-
-      console.log("Attachments:", attachments);
-
-      return res.status(200).json({
-        success: true,
-        message: "Saved Successfully",
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
   // Add
   async add(req, res, next) {
     try {

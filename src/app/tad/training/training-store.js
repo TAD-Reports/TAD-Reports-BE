@@ -128,64 +128,6 @@ class TrainingStore {
     return convertedResults[0].max_date;
   }
 
-  // async getGraph(region, startDate, endDate, search) {
-  //   const formattedStartDate = formatDate(startDate);
-  //   const formattedEndDate = formatDate(endDate);
-  //   const maxDate = await this.getMaxDate();
-  //   const firstDate = firstDateOfMonth(maxDate);
-  //   const lastDate = lastDateOfMonth(maxDate);
-  //   const query = this.db(this.table)
-  //     .select(this.cols.gender)
-  //     .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
-  //     .sum(`${this.cols.participants} AS total_participants`)
-  //     .groupBy(
-  //       this.cols.gender,
-  //       this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
-  //       this.cols.reportDate
-  //     )
-  //     .orderBy(this.cols.reportDate);
-  //   if (startDate && endDate) {
-  //     query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-  //   } else {
-  //     query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-  //   }
-  //   if (region) {
-  //     query.where(this.cols.region, region);
-  //   }
-  //   if (search) {
-  //     const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-  //     query.andWhere((builder) => {
-  //       builder.where((innerBuilder) => {
-  //         Object.keys(columns).forEach((column) => {
-  //           innerBuilder.orWhere(column, 'like', `%${search}%`);
-  //         });
-  //       });
-  //     });
-  //   }
-  //   const formattedResult = await query.then((rows) => {
-  //     const formattedData = rows.reduce((acc, curr) => {
-  //       const index = acc.findIndex((item) => item.name === curr.gender);
-  //       if (index !== -1) {
-  //         acc[index].months[curr.month_year] = curr.total_participants;
-  //       } else {
-  //         acc.push({
-  //           name: curr.gender,
-  //           months: {
-  //             [curr.month_year]: curr.total_participants,
-  //           },
-  //         });
-  //       }
-  //       return acc;
-  //     }, []);
-  //     const updatedFormattedData = formattedData.map((item) => {
-  //       const months = item.months;
-  //       const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
-  //       return { ...item, months: { ...months, total } };
-  //     });
-  //     return updatedFormattedData;
-  //   });
-  //   return formattedResult;
-  // }
   async getLineGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
@@ -393,7 +335,7 @@ class TrainingStore {
     const firstDate = firstDateOfMonth(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const result = await this.db(this.table)
-      .count(`${this.cols.coopName} AS count`)
+      .count(`${this.cols.gender} AS count`)
       .where((query) => {
         if (!maxDate) {
           query.whereRaw("false");

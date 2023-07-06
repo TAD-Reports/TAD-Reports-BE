@@ -1,5 +1,5 @@
-const { query } = require('express');
-const moment = require('moment-timezone');
+const { query } = require("express");
+const moment = require("moment-timezone");
 const TableConfig = require("../../../configuration/cottonTableConfig");
 
 class CottonStore {
@@ -127,11 +127,11 @@ class CottonStore {
     return convertedResults[0].max_date;
   }
 
-  async getGraph(region, startDate, endDate, search) {
+  async getLineGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     const maxDate = await this.getMaxDate();
-    const firstDate = firstDateOfMonth(maxDate);
+    const firstDate = sixMonthBehindDate(maxDate);
     const lastDate = lastDateOfMonth(maxDate);
     const query = this.db(this.table)
       .select(this.cols.nameOfBeneficiary)
@@ -159,7 +159,7 @@ class CottonStore {
       query.where(this.cols.region, region);
     }
     if (search) {
-      const columns = await this.db(this.table).columnInfo(); // Retrieve column information
+      const columns = await this.db(this.table).columnInfo();
       query.andWhere((builder) => {
         builder.where((innerBuilder) => {
           Object.keys(columns).forEach((column) => {
@@ -171,29 +171,117 @@ class CottonStore {
     const formattedResult = await query.then((rows) => {
       const formattedData = rows.reduce((acc, curr) => {
         const index = acc.findIndex(
-          (item) => item.name === curr.name_of_beneficiary
+          (item) => item.id === curr.name_of_beneficiary
         );
         if (index !== -1) {
-          acc[index].months[curr.month_year] = curr.area_planted;
+          acc[index].data.push({
+            x: curr.month_year,
+            y: curr.area_planted,
+          });
         } else {
           acc.push({
-            name: curr.name_of_beneficiary,
-            months: {
-              [curr.month_year]: curr.area_planted,
-            },
+            id: curr.name_of_beneficiary,
+            data: [
+              {
+                x: curr.month_year,
+                y: curr.area_planted,
+              },
+            ],
           });
         }
         return acc;
       }, []);
-      const updatedFormattedData = formattedData.map((item) => {
-        const months = item.months;
-        const total = Object.values(months).reduce(
-          (acc, value) => acc + parseInt(value),
-          0
-        );
-        return { ...item, months: { ...months, total } };
+
+      // Find unique x values
+      const uniqueXValues = new Set();
+      formattedData.forEach((item) => {
+        item.data.forEach((dataPoint) => {
+          uniqueXValues.add(dataPoint.x);
+        });
       });
-      return updatedFormattedData;
+
+      // Add missing x values with y = 0
+      formattedData.forEach((item) => {
+        const missingXValues = Array.from(uniqueXValues).filter(
+          (x) => !item.data.find((dataPoint) => dataPoint.x === x)
+        );
+        missingXValues.forEach((x) => {
+          item.data.push({ x, y: 0 });
+        });
+
+        // Sort data array based on x values
+        item.data.sort((a, b) => {
+          const dateA = new Date(a.x);
+          const dateB = new Date(b.x);
+          return dateA - dateB;
+        });
+      });
+
+      return formattedData;
+    });
+
+    return formattedResult;
+  }
+
+  async getBarGraph(region, startDate, endDate, search) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    const maxDate = await this.getMaxDate();
+    const firstDate = sixMonthBehindDate(maxDate);
+    const lastDate = lastDateOfMonth(maxDate);
+    const query = this.db(this.table)
+      .select(this.cols.nameOfBeneficiary)
+      .select(
+        this.db.raw(
+          `CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`
+        )
+      )
+      .sum(`${this.cols.areaPlanted} AS area_planted`)
+      .groupBy(
+        this.cols.nameOfBeneficiary,
+        this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
+        this.cols.reportDate
+      )
+      .orderBy(this.cols.reportDate);
+    if (startDate && endDate) {
+      query.whereBetween(this.cols.reportDate, [
+        formattedStartDate,
+        formattedEndDate,
+      ]);
+    } else {
+      query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+    }
+    if (region) {
+      query.where(this.cols.region, region);
+    }
+    if (search) {
+      const columns = await this.db(this.table).columnInfo();
+      query.andWhere((builder) => {
+        builder.where((innerBuilder) => {
+          Object.keys(columns).forEach((column) => {
+            innerBuilder.orWhere(column, "like", `%${search}%`);
+          });
+        });
+      });
+    }
+
+    const formattedResult = await query.then((rows) => {
+      const formattedData = rows.reduce((acc, curr) => {
+        const index = acc.findIndex(
+          (item) => item.name === curr.name_of_beneficiary
+        );
+        if (index !== -1) {
+          acc[index][curr.month_year] = curr.area_planted;
+        } else {
+          acc.push({
+            name: curr.name_of_beneficiary,
+            [curr.month_year]: curr.area_planted,
+          });
+        }
+        return acc;
+      }, []);
+
+      return formattedData;
     });
     return formattedResult;
   }
@@ -281,39 +369,44 @@ class CottonStore {
 }
 
 function formatDate(dateString) {
-  const date = moment(dateString, 'YYYY/MM/DD', true); // Use moment.js to parse the date
+  const date = moment(dateString, "YYYY/MM/DD", true); // Use moment.js to parse the date
   if (!date.isValid()) {
     console.log("Invalid Date! Use this format YYYY/MM/DD");
-    return ("");
+    return "";
   }
-  return date.format('YYYY-MM-DD');
+  return date.format("YYYY-MM-DD");
 }
 
 function convertDatesToTimezone(rows, dateFields) {
-  return rows.map(row => {
+  return rows.map((row) => {
     const convertedFields = {};
-    dateFields.forEach(field => {
-      const convertedDate = moment.utc(row[field]).tz('Asia/Singapore').format('YYYY-MM-DD');
+    dateFields.forEach((field) => {
+      const convertedDate = moment
+        .utc(row[field])
+        .tz("Asia/Singapore")
+        .format("YYYY-MM-DD");
       convertedFields[field] = convertedDate;
     });
     return { ...row, ...convertedFields };
   });
 }
 
-function firstDateOfMonth(date) {
-  const firstDate = moment(date).startOf('month').format('YYYY-MM-DD');
+function sixMonthBehindDate(date) {
+  const sixMonthsAgo = moment(date).subtract(6, "months");
+  const firstDate = sixMonthsAgo.startOf("month").format("YYYY-MM-DD");
   return firstDate;
 }
 
+function firstDateOfMonth(date) {
+  const firstDate = moment(date).startOf("month").format("YYYY-MM-DD");
+  return firstDate;
+}
 
 function lastDateOfMonth(date) {
-  const lastDate = moment(date).endOf('month').format('YYYY-MM-DD');
+  const lastDate = moment(date).endOf("month").format("YYYY-MM-DD");
   return lastDate;
 }
 
-
-
 module.exports = CottonStore;
-
 
 //SELECT * FROM accounts WHERE username like %:match% OR role like %:match%"

@@ -10,9 +10,6 @@ const service = new Service();
 const router = express.Router();
 
 //Add / Import
-router.post("/asd", db, uploadFile, asyncHandler(service.uploaad));
-
-//Add / Import
 router.post("/appform", db, uploadFile, asyncHandler(service.add));
 
 //Get

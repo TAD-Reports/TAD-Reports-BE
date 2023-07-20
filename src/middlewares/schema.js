@@ -24,6 +24,7 @@ const userDao =
             table.string("lastname").notNullable();
             table.string("region").nullable();
             table.string("role").notNullable();
+            table.string("refresh_token").nullable();
             table.integer("status").notNullable().defaultTo(1);
           })
           .createTable("nursery", (table) => {

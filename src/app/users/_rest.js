@@ -13,6 +13,9 @@ const router = express.Router();
 // User login
 router.post("/login", db, schema, asyncHandler(service.login));
 
+// Use Refresh Token
+router.get("/refresh", db, asyncHandler(service.refresh));
+
 // Register new user
 router.post("/register", db, asyncHandler(service.register));
 
@@ -32,6 +35,6 @@ router.put("/user/:uuid", db, asyncHandler(service.update));
 // router.delete('/user/:uuid', db, asyncHandler(service.delete));
 
 // Log out
-router.post("/logout", db, asyncHandler(service.logout));
+router.get("/logout", db, asyncHandler(service.logout));
 
 module.exports = router;

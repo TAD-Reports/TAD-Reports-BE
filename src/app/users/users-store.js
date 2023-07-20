@@ -4,47 +4,52 @@ class UserStore {
   }
 
   async getUsername(username) {
-    return await this.db('users')
-      .where('username', username)
-      .first();
+    return await this.db("users").where("username", username).first();
   }
 
   async registerUser(body, hash) {
-    return await this.db('users')
-      .insert({
-        username: body.username,
-        password: hash,
-        firstname: body.firstname,
-        lastname: body.lastname,
-        region: body.region,
-        role: body.role
-      });
+    return await this.db("users").insert({
+      username: body.username,
+      password: hash,
+      firstname: body.firstname,
+      lastname: body.lastname,
+      region: body.region,
+      role: body.role,
+    });
   }
 
   async updateUser(uuid, body, hash) {
-    return await this.db('users')
-      .where('UUID', uuid)
-      .update({
-        username: body.username,
-        password: hash,
-        firstname: body.firstname,
-        lastname: body.lastname,
-        region: body.region,
-        role: body.role,
-        status: body.status
-      });
+    return await this.db("users").where("UUID", uuid).update({
+      username: body.username,
+      password: hash,
+      firstname: body.firstname,
+      lastname: body.lastname,
+      region: body.region,
+      role: body.role,
+      refresh_token: body.refresh_token,
+      status: body.status,
+    });
+  }
+
+  async updateRefreshToken(uuid, body, refreshtoken) {
+    return await this.db("users").where("UUID", uuid).update({
+      username: body.username,
+      password: body.password,
+      firstname: body.firstname,
+      lastname: body.lastname,
+      region: body.region,
+      role: body.role,
+      refresh_token: refreshtoken,
+      status: body.status,
+    });
   }
 
   async getUserByUUID(uuid) {
-    return await this.db('users')
-      .select()
-      .where('UUID', uuid)
-      .first();
+    return await this.db("users").select().where("UUID", uuid).first();
   }
 
   async getAllUsers() {
-    return await this.db('users')
-      .select();
+    return await this.db("users").select();
   }
 
   // async deleteUser(uuid) {

@@ -1,10 +1,9 @@
-require("dotenv").config();
 const Store = require("./users-store");
 const Logs = require("../logs/logs-store");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const jwtSecret = process.env.ACCESS_TOKEN_SECRET;
 const userId = 1;
+require("dotenv").config();
 
 const {
   NotFoundError,
@@ -37,28 +36,46 @@ class UserService {
         throw new BadRequestError("Invalid login credentials");
       }
       // Create a JWT token
-      const accessToken = jwt.sign({ id: user.uuid }, jwtSecret, {
-        expiresIn: "30s",
-      });
-      const refreshToken = jwt.sign({ id: user.uuid }, jwtSecret, {
-        expiresIn: "30s",
-      });
+      const accessToken = jwt.sign(
+        {
+          UserInfo: {
+            username: user.username,
+            role: user.role,
+          },
+        },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "30s" }
+      );
+      const refreshToken = jwt.sign(
+        { username: user.username },
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+          expiresIn: "30s",
+        }
+      );
+
+      store.updateRefreshToken(user.uuid, user, refreshToken);
+
+      const updatedUser = await store.getUsername(body.username);
+
       logs.add({
         uuid: user.uuid,
         module: moduleName,
         action: "signed in",
         ...body,
       });
+
       return res
-        .status(200)
         .cookie("jwt", refreshToken, {
           httpOnly: true,
+          sameSite: "None",
+          secure: true,
           maxAge: 30 * 1000,
         })
         .send({
           valid: true,
           message: "Login successful",
-          data: user,
+          data: updatedUser,
           accessToken: accessToken,
         });
     } catch (err) {
@@ -68,27 +85,73 @@ class UserService {
 
   async logout(req, res, next) {
     try {
+      const store = new Store(req.db);
+      const users = await store.getAllUsers();
+
       const cookies = req.cookies;
       if (!cookies?.jwt) return res.sendStatus(204);
       const refreshToken = cookies.jwt;
 
-      console.log(this.db);
-      const foundUser = this.db.users.find(
-        (person) => person.refreshToken === refreshToken
+      const foundUser = await users.find(
+        (user) => user.refresh_token === refreshToken
       );
 
       if (!foundUser) {
-        console.log("NO USER FOUND NA MAY REFRESH TOKEN");
+        res.clearCookie("jwt", {
+          httpOnly: true,
+          sameSite: "None",
+          secure: true,
+        });
         return res.sendStatus(204);
       }
 
-      // Clear the refresh token cookie
-      return res
-        .clearCookie("jwt", { httpOnly: true, maxAge: 24 * 60 * 60 * 1000 })
-        .status(200)
-        .send({
-          message: "Logout successful",
-        });
+      store.updateRefreshToken(foundUser.uuid, foundUser, null);
+
+      res.clearCookie("jwt", {
+        httpOnly: true,
+        sameSite: "None",
+        secure: true,
+      });
+      res.sendStatus(204);
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async refresh(req, res, next) {
+    try {
+      const store = new Store(req.db);
+      const users = await store.getAllUsers();
+
+      const cookies = req.cookies;
+      if (!cookies?.jwt)
+        return res.status(401).json({ message: "Unauthorized" });
+      const refreshToken = cookies.jwt;
+
+      const foundUser = await users.find(
+        (user) => user.refresh_token === refreshToken
+      );
+
+      if (!foundUser) return res.sendStatus(403); // Forbidden
+
+      jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+        (err, decoded) => {
+          if (err || foundUser.username !== decoded?.username) {
+            console.log(err);
+            return res.sendStatus(403);
+          }
+          const accessToken = jwt.sign(
+            {
+              username: decoded.username,
+            },
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: "30s" }
+          );
+          return res.json({ accessToken });
+        }
+      );
     } catch (err) {
       next(err);
     }

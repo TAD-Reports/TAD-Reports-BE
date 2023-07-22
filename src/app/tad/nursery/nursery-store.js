@@ -363,6 +363,33 @@ class NurseryStore {
     const count = result ? result.count : 0;
     return count;
   }
+
+  //retrieve data to database
+  async retrieveData(search, startDate, endDate, region) {
+    const formattedStartDate = formatDate(startDate);
+    const formattedEndDate = formatDate(endDate);
+    try {
+      let query = req.db('data');
+  
+      if (search) {
+        query = query.where(function () {
+          this.where('report_date', '>=', formattedStartDate)
+            .andWhere('report_date', '<=', formattedEndDate)
+            .andWhere('region', region)
+            .andWhere(function () {
+              this.where(column, 'like', `%${search}%`)
+              // Add more columns here if you want to include them in the search
+            });
+        });
+      }
+  
+      const data = await query.select('*');
+      return data;
+    } catch (error) {
+      throw new Error('Error retrieving data from the database');
+    }
+  }
+
 }
 
 function formatDate(dateString) {

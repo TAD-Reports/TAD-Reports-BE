@@ -289,6 +289,29 @@ class NurseryService {
       next(error);
     }
   }
+
+async exportData(search, startDate, endDate, region) {
+  try {
+    const data = await retrieveData(search, startDate, endDate, region);
+
+    // Create a new workbook and worksheet
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.json_to_sheet(data);
+
+    // Add the worksheet to the workbook
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+
+    // Write the workbook to a file
+    const outputPath = 'output.xlsx';
+    XLSX.writeFile(workbook, outputPath);
+
+    console.log(`Data exported to ${outputPath}`);
+  } catch (error) {
+    console.error('Error exporting data:', error);
+  }
+}
+exportData({});
+
 }
 
 // Function to convert Excel date to "dd/mm/yyyy" format

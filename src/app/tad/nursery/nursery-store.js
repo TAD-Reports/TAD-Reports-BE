@@ -376,9 +376,8 @@ class NurseryStore {
           this.where('report_date', '>=', formattedStartDate)
             .andWhere('report_date', '<=', formattedEndDate)
             .andWhere('region', region)
-            .andWhere(function () {
-              this.where(column, 'like', `%${search}%`)
-              // Add more columns here if you want to include them in the search
+            .andWhere(builder => {
+              builder.where(column, 'like', `%${search}%`)
             });
         });
       }

@@ -302,7 +302,7 @@ async exportData(search, startDate, endDate, region) {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
 
     // Write the workbook to a file
-    const outputPath = 'output.xlsx';
+    const outputPath = 'NurseryData.xlsx';
     XLSX.writeFile(workbook, outputPath);
 
     console.log(`Data exported to ${outputPath}`);

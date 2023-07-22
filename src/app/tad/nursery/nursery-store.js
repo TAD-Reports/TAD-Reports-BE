@@ -365,20 +365,34 @@ class NurseryStore {
   }
 
   //retrieve data to database
-  async retrieveData(search, startDate, endDate, region) {
+  async retrieveData(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
     const formattedEndDate = formatDate(endDate);
     try {
       let query = req.db('data');
   
+      if (!maxDate) {
+        return [];
+      }
+      if (startDate && endDate) {
+        query.whereBetween(this.cols.reportDate, [
+          formattedStartDate,
+          formattedEndDate,
+        ]);
+      } else {
+        query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
+      }
+      if (region) {
+        query.where(this.cols.region, region);
+      }
       if (search) {
-        query = query.where(function () {
-          this.where('report_date', '>=', formattedStartDate)
-            .andWhere('report_date', '<=', formattedEndDate)
-            .andWhere('region', region)
-            .andWhere(builder => {
-              builder.where(column, 'like', `%${search}%`)
+        const columns = await this.db(this.table).columnInfo();
+        query.andWhere((builder) => {
+          builder.where((innerBuilder) => {
+            Object.keys(columns).forEach((column) => {
+              innerBuilder.orWhere(column, "like", `%${search}%`);
             });
+          });
         });
       }
   

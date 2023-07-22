@@ -24,4 +24,7 @@ router.put("/nursery/update/:uuid", db, asyncHandler(service.update));
 //Delete
 router.delete("/nursery/delete/:uuid", db, asyncHandler(service.delete));
 
+//export
+router.post("/nursery/export", db, asyncHandler(service.exportData));
+
 module.exports = router;

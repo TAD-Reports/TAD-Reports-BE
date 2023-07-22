@@ -310,7 +310,7 @@ async exportData(search, startDate, endDate, region) {
     console.error('Error exporting data:', error);
   }
 }
-exportData({});
+
 
 }
 

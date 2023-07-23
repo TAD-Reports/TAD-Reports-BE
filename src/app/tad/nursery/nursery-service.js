@@ -290,27 +290,89 @@ class NurseryService {
     }
   }
 
-async exportData(search, startDate, endDate, region) {
-  try {
-    const data = await retrieveData(search, startDate, endDate, region);
+  async exportDataToExcel(req, res) {
+    const store = new Store(req.db);
+    try {
+      // Extract the headers from the request object
+      const { region, startDate, endDate, search } = req.headers;
 
-    // Create a new workbook and worksheet
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(data);
+      // Call the search method from the DAO class to retrieve the filtered data
+      const data = await store.search(region, startDate, endDate, search);
 
-    // Add the worksheet to the workbook
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+      // Create a new workbook and worksheet
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(data);
 
-    // Write the workbook to a file
-    const outputPath = 'NurseryData.xlsx';
-    XLSX.writeFile(workbook, outputPath);
+      // Add the worksheet to the workbook
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
 
-    console.log(`Data exported to ${outputPath}`);
-  } catch (error) {
-    console.error('Error exporting data:', error);
+      // Generate the Excel file and return it as a buffer
+      const excelBuffer = XLSX.write(workbook, { type: 'buffer' });
+
+      // Set the response headers to trigger the download
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', 'attachment; filename=NurseryData.xlsx');
+
+      // Send the Excel buffer as the response
+      res.send(excelBuffer);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Error exporting data',
+        error: error.message,
+      });
+    }
   }
-}
 
+  // async exportData(req, res) {
+  //   try {
+  //     // Create an instance of the DAO class and pass the database connection (knex instance) to it
+  //     const store = new Store(req.db);
+  
+  //     // Extract the headers from the request object
+  //     const { search, startDate, endDate, region } = req.headers;
+  
+  //     // Call the DAO function using the instance and retrieve the data
+  //     const data = await store.retrieveData(search, startDate, endDate, region);
+  
+  //     // Create a new workbook and worksheet
+  //     const workbook = XLSX.utils.book_new();
+  //     const worksheet = XLSX.utils.json_to_sheet(data);
+  
+  //     // Add the worksheet to the workbook
+  //     XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+
+  //     const buffer = XLSX.write(workbook, {type: 'buffer'});
+
+  //     // Set the response headers to indicate a downloadable Excel file
+  //     res.setHeader('Content-Disposition', 'attachment; filename=NurseryData.xlsx');
+  //     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  
+  //     // Write the workbook to a file
+  //     const outputPath = 'NurseryData.xlsx';
+  //     XLSX.writeFile(workbook, outputPath);
+  
+  //     console.log(`Data exported to ${outputPath}`);
+  
+  //     // Send the response
+  //     // return res.status(200).json({
+  //     //   success: true,
+  //     //   message: 'Data exported successfully',
+  //     //   data: outputPath,
+  //     // });
+  //     res.send(buffer);
+  //   } catch (error) {
+  //     console.error('Error exporting data:', error);
+  
+  //     // Send the error response
+  //     return res.status(500).json({
+  //       success: false,
+  //       message: 'Error exporting data',
+  //       error: error.message,
+  //     });
+  //   }
+  // }
 
 }
 

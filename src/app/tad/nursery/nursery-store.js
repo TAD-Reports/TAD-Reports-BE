@@ -19,7 +19,10 @@ class NurseryStore {
       district: row["District"],
       municipality: row["Municipality"],
       barangay: row["Barangay"],
+      birthdate: row["Birthdate"],
+      age: row["Age"],
       name_of_cooperative_individual: row["Name of Cooperative/ Individual"],
+      gender: row["Gender"],
       date_established: row["Date Established"],
       area_in_hectares_ha: row["Area in Hectares (ha)"],
       variety_used: row["Variety Used"],
@@ -40,7 +43,10 @@ class NurseryStore {
       district: body.district,
       municipality: body.municipality,
       barangay: body.barangay,
+      birthdate: body.birthdate,
+      age: body.age,
       name_of_cooperative_individual: body.name_of_cooperative_individual,
+      gender: body.gender,
       date_established: body.date_established,
       area_in_hectares_ha: body.area_in_hectares_ha,
       variety_used: body.variety_used,
@@ -81,6 +87,7 @@ class NurseryStore {
       .where(this.cols.id, uuid);
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
+      this.cols.birthdate,
       this.cols.establishedDate,
     ]);
     return convertedResults;
@@ -98,6 +105,7 @@ class NurseryStore {
     }
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
+      this.cols.birthdate,
       this.cols.establishedDate,
     ]);
     const columnNames = await this.db(this.table)
@@ -321,7 +329,7 @@ class NurseryStore {
     const results = await query;
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate, this.cols.establishedDate]
+      [this.cols.reportDate, this.cols.birthdate, this.cols.establishedDate]
     );
     return convertedResults;
   }

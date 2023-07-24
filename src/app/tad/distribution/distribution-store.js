@@ -25,6 +25,8 @@ class DistributionStore {
       no_of_pm_distributed: row["No. of PM Distributed"],
       name_of_recipient_bene: row["Name of Recipient/ Bene"],
       address_of_beneficiary: row["Address of Beneficiary"],
+      age: row["Age"],
+      birthdate: row["Birthdate"],
       gender: row["Gender"],
       category: row["Category"],
       remarks: row["Remarks"],
@@ -48,6 +50,8 @@ class DistributionStore {
       no_of_pm_distributed: body.no_of_pm_distributed,
       name_of_recipient_bene: body.name_of_recipient_bene,
       address_of_beneficiary: body.address_of_beneficiary,
+      age: body.age,
+      birthdate: body.birthdate,
       gender: body.gender,
       category: body.category,
       remarks: body.remarks,
@@ -84,6 +88,7 @@ class DistributionStore {
       .where(this.cols.id, uuid);
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
+      this.cols.birthdate
     ]);
     return convertedResults;
   }
@@ -100,6 +105,7 @@ class DistributionStore {
     }
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
+      this.cols.birthdate
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -325,7 +331,7 @@ class DistributionStore {
     const results = await query;
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate]
+      [this.cols.reportDate, this.cols.birthdate]
     );
     return convertedResults;
   }

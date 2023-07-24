@@ -58,6 +58,8 @@ class DistributionService {
           !row["No. of PM Distributed"] ||
           !row["Name of Recipient/ Bene"] ||
           !row["Address of Beneficiary"] ||
+          !row["Age"] ||
+          !row["Birthdate"] ||
           !row["Gender"] ||
           !row["Category"]
         ) {
@@ -71,6 +73,11 @@ class DistributionService {
         if (row["Report Date"] && typeof row["Report Date"] === "number") {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
         }
+        
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
+        }
+
         const regionValue = row["Region"];
         if (!regionValue.startsWith("Regional Office ")) {
           throw new BadRequestError(

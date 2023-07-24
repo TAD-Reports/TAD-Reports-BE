@@ -22,6 +22,9 @@ class PmSurvivedStore {
       no_of_pm_available_during_establishment:
         row["No. of PM available during Establishment"],
       variety: row["Variety"],
+      birthdate: row["Birthdate"],
+      age: row["Age"],
+      gender: row["Gender"],
       date_received: row["Date Received"],
       no_of_pm_planted: row["No. of PM Planted"],
       no_of_pm_survived: row["No. of PM Survived"],
@@ -43,6 +46,9 @@ class PmSurvivedStore {
       no_of_pm_available_during_establishment:
         body.no_of_pm_available_during_establishment,
       variety: body.variety,
+      birthdate: body.birthdate,
+      age: body.age,
+      gender: body.gender,
       date_received: body.date_received,
       no_of_pm_planted: body.no_of_pm_planted,
       no_of_pm_survived: body.no_of_pm_survived,
@@ -80,6 +86,7 @@ class PmSurvivedStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.cols.dateReceived,
+      this.cols.birthdate
     ]);
     return convertedResults;
   }
@@ -97,6 +104,7 @@ class PmSurvivedStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.cols.dateReceived,
+      this.cols.birthdate
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -319,7 +327,7 @@ class PmSurvivedStore {
     const results = await query;
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate, this.cols.dateReceived]
+      [this.cols.reportDate, this.cols.dateReceived, this.cols.birthdate]
     );
     return convertedResults;
   }

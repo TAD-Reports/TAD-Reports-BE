@@ -19,6 +19,8 @@ class ExpansionStore {
       municipality: row["Municipality"],
       barangay: row["Barangay"],
       name_of_beneficiary: row["Name of Beneficiary"],
+      birthdate: row["Birthdate"],
+      age: row["Age"],
       gender: row["Gender"],
       category: row["Category"],
       area_planted_has: row["Area Planted (has)"],
@@ -39,6 +41,8 @@ class ExpansionStore {
       municipality: body.municipality,
       barangay: body.barangay,
       name_of_beneficiary: body.name_of_beneficiary,
+      birthdate: body.birthdate,
+      age: body.age,
       gender: body.gender,
       category: body.category,
       area_planted_has: body.area_planted_has,
@@ -78,6 +82,7 @@ class ExpansionStore {
       .where(this.cols.id, uuid);
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
+      this.cols.birthdate
     ]);
     return convertedResults;
   }
@@ -94,6 +99,7 @@ class ExpansionStore {
     }
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
+      this.cols.birthdate
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -121,64 +127,6 @@ class ExpansionStore {
     return convertedResults[0].max_date;
   }
 
-  // async getGraph(region, startDate, endDate, search) {
-  //   const formattedStartDate = formatDate(startDate);
-  //   const formattedEndDate = formatDate(endDate);
-  //   const maxDate = await this.getMaxDate();
-  //   const firstDate = firstDateOfMonth(maxDate);
-  //   const lastDate = lastDateOfMonth(maxDate);
-  //   const query = this.db(this.table)
-  //     .select(this.cols.nameOfFiberCrops)
-  //     .select(this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`))
-  //     .sum(`${this.cols.areaPlantedHas} AS area_planted`)
-  //     .groupBy(
-  //       this.cols.nameOfFiberCrops,
-  //       this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),
-  //       this.cols.reportDate
-  //     )
-  //     .orderBy(this.cols.reportDate);
-  //   if (startDate && endDate) {
-  //     query.whereBetween(this.cols.reportDate, [formattedStartDate, formattedEndDate]);
-  //   } else {
-  //     query.whereBetween(this.cols.reportDate, [firstDate, lastDate]);
-  //   }
-  //   if (region) {
-  //     query.where(this.cols.region, region);
-  //   }
-  //   if (search) {
-  //     const columns = await this.db(this.table).columnInfo(); // Retrieve column information
-  //     query.andWhere((builder) => {
-  //       builder.where((innerBuilder) => {
-  //         Object.keys(columns).forEach((column) => {
-  //           innerBuilder.orWhere(column, 'like', `%${search}%`);
-  //         });
-  //       });
-  //     });
-  //   }
-  //   const formattedResult = await query.then((rows) => {
-  //     const formattedData = rows.reduce((acc, curr) => {
-  //       const index = acc.findIndex((item) => item.name === curr.name_of_fiber_crops);
-  //       if (index !== -1) {
-  //         acc[index].months[curr.month_year] = curr.area_planted;
-  //       } else {
-  //         acc.push({
-  //           name: curr.name_of_fiber_crops,
-  //           months: {
-  //             [curr.month_year]: curr.area_planted,
-  //           },
-  //         });
-  //       }
-  //       return acc;
-  //     }, []);
-  //     const updatedFormattedData = formattedData.map((item) => {
-  //       const months = item.months;
-  //       const total = Object.values(months).reduce((acc, value) => acc + parseInt(value), 0);
-  //       return { ...item, months: { ...months, total } };
-  //     });
-  //     return updatedFormattedData;
-  //   });
-  //   return formattedResult;
-  // }
 
   async getLineGraph(region, startDate, endDate, search) {
     const formattedStartDate = formatDate(startDate);
@@ -378,7 +326,7 @@ class ExpansionStore {
     const results = await query; // Execute the query and retrieve the results
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate]
+      [this.cols.reportDate, this.cols.birthdate]
     );
     return convertedResults;
   }

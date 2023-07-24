@@ -73,6 +73,9 @@ class PmSurvivedService {
           !row["Barangay"] ||
           !row["No. of PM available during Establishment"] ||
           !row["Variety"] ||
+          !row["Birthdate"] ||
+          !row["Age"] ||
+          !row["Gender"] ||
           !row["Date Received"] ||
           !row["No. of PM Planted"] ||
           !row["No. of PM Survived"]
@@ -94,6 +97,10 @@ class PmSurvivedService {
 
         if (row["Date Received"] && typeof row["Date Received"] === "number") {
           row["Date Received"] = convertExcelDate(row["Date Received"]);
+        }
+
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
         }
 
         // Validate the Region column

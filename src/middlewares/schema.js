@@ -37,7 +37,10 @@ const userDao =
             table.string("district").nullable();
             table.string("municipality").notNullable();
             table.string("barangay").notNullable();
+            table.date("birthdate").notNullable();
+            table.integer("age").notNullable();
             table.string("name_of_cooperative_individual").notNullable();
+            table.string("gender").notNullable();
             table.date("date_established").notNullable();
             table.double("area_in_hectares_ha").notNullable();
             table.string("variety_used").notNullable();
@@ -69,6 +72,8 @@ const userDao =
             table.double("no_of_pm_distributed").notNullable();
             table.string("name_of_recipient_bene").notNullable();
             table.string("address_of_beneficiary").notNullable();
+            table.integer("age").notNullable();
+            table.date("birthdate").notNullable();
             table.string("gender").notNullable();
             table.string("category").notNullable();
             table.string("remarks").nullable();
@@ -95,6 +100,9 @@ const userDao =
               .double("no_of_pm_available_during_establishment")
               .notNullable();
             table.string("variety").notNullable();
+            table.date("birthdate").notNullable();
+            table.integer("age").notNullable();
+            table.string("gender").notNullable();
             table.date("date_received").notNullable();
             table.double("no_of_pm_planted").notNullable();
             table.double("no_of_pm_survived").notNullable();
@@ -118,6 +126,8 @@ const userDao =
             table.string("municipality").notNullable();
             table.string("barangay").notNullable();
             table.string("name_of_beneficiary").notNullable();
+            table.date("birthdate").notNullable();
+            table.integer("age").notNullable();
             table.string("gender").notNullable();
             table.string("category").notNullable();
             table.double("area_planted_has").notNullable();

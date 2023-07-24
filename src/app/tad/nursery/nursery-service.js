@@ -71,7 +71,10 @@ class NurseryService {
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
+          !row["Birthdate"] ||
+          !row["Age"] ||
           !row["Name of Cooperative/ Individual"] ||
+          !row["Gender"] ||
           !row["Date Established"] ||
           !row["Area in Hectares (ha)"] ||
           !row["Variety Used"] ||
@@ -90,6 +93,10 @@ class NurseryService {
         // Convert the date format
         if (row["Report Date"] && typeof row["Report Date"] === "number") {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
+        }
+
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
         }
 
         if (

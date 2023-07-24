@@ -10,6 +10,8 @@ module.exports = {
     municipality: 'municipality',
     barangay: 'barangay',
     nameOfBeneficiary: 'name_of_beneficiary',
+    birthdate: 'birthdate',
+    age: 'age',
     gender: 'gender',
     category: 'category',
     areaPlantedHas: 'area_planted_has',

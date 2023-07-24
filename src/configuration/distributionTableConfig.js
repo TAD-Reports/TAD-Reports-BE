@@ -15,8 +15,10 @@ module.exports = {
     distributedPm: 'no_of_pm_distributed',
     recipient: 'name_of_recipient_bene',
     beneAddress: 'address_of_beneficiary',
+    age: 'age',
+    birthdate: 'birthdate',
     gender: 'gender',
-    categpry: 'categpry',
-    remarks: 'remarks',
+    category: 'category',
+    remarks: 'remarks',   
   },
 };

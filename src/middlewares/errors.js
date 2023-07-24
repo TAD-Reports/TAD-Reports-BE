@@ -2,14 +2,14 @@
 class NotFoundError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'NotFoundError';
+    this.name = "NotFoundError";
   }
 }
 
 class BadRequestError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'BadRequestError';
+    this.name = "BadRequestError";
   }
 }
 
@@ -17,10 +17,16 @@ class BadRequestError extends Error {
 class FileUploadError extends Error {
   constructor(message) {
     super(message);
-    this.name = 'FileUploadError';
+    this.name = "FileUploadError";
   }
 }
 
+class AuthenticationError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "AuthenticationError";
+  }
+}
 
 // Error handling middleware
 function errorHandler(err, req, res, next) {
@@ -29,7 +35,7 @@ function errorHandler(err, req, res, next) {
     return res.status(404).json({
       success: false,
       error: err.name,
-      message: err.message
+      message: err.message,
     });
   }
 
@@ -37,7 +43,7 @@ function errorHandler(err, req, res, next) {
     return res.status(400).json({
       success: false,
       error: err.name,
-      message: err.message
+      message: err.message,
     });
   }
 
@@ -45,8 +51,8 @@ function errorHandler(err, req, res, next) {
   console.error(err); // Log the error for debugging purposes
   return res.status(500).json({
     success: false,
-    error: 'ServerError',
-    message: 'An unexpected error occurred'
+    error: "ServerError",
+    message: "An unexpected error occurred",
   });
 }
 
@@ -54,5 +60,6 @@ module.exports = {
   NotFoundError,
   BadRequestError,
   FileUploadError,
-  errorHandler
+  errorHandler,
+  AuthenticationError,
 };

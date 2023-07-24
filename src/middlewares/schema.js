@@ -411,6 +411,15 @@ const userDao =
             region: "all",
             role: "hradmin",
           },
+          {
+            username: "pictu",
+            password:
+              "$2b$10$Kwfe69CG8eom.ueyw4DM3.1SxWwJsY8k7dpE53rhL8Txpq3hDprye",
+            firstname: "Pictu",
+            lastname: "Pictu",
+            region: "all",
+            role: "pictu",
+          },
         ]);
       } catch (error) {
         console.error("Error creating user tables:", error);

@@ -1,6 +1,10 @@
+const TableConfig = require("../../configuration/userTableConfig");
+
 class UserStore {
   constructor(db) {
     this.db = db;
+    this.table = TableConfig.tableName;
+    this.cols = TableConfig.columnNames;
   }
 
   async getUsername(username) {
@@ -48,8 +52,26 @@ class UserStore {
     return await this.db("users").select().where("UUID", uuid).first();
   }
 
-  async getAllUsers() {
+  async getAll() {
     return await this.db("users").select();
+  }
+
+  async search(search) {
+    const query = this.db(this.table)
+      .select()
+      .orderBy([{ column: this.cols.id, order: "asc" }]);
+    if (search) {
+      const columns = await this.db(this.table).columnInfo();
+      query.andWhere((builder) => {
+        builder.where((innerBuilder) => {
+          Object.keys(columns).forEach((column) => {
+            innerBuilder.orWhere(column, "like", `%${search}%`);
+          });
+        });
+      });
+    }
+    const results = await query;
+    return results;
   }
 
   // async deleteUser(uuid) {

@@ -9,6 +9,7 @@ const {
   NotFoundError,
   BadRequestError,
   errorHandler,
+  AuthenticationError,
 } = require("../../middlewares/errors");
 const moduleName = "Authentication";
 
@@ -33,7 +34,7 @@ class UserService {
       }
       const validPassword = await bcrypt.compare(body.password, user.password);
       if (!validPassword) {
-        throw new BadRequestError("Invalid login credentials");
+        throw new AuthenticationError("Invalid login credentials");
       }
       // Create a JWT token
       const accessToken = jwt.sign(
@@ -80,6 +81,19 @@ class UserService {
         });
     } catch (err) {
       next(err);
+      if (err instanceof AuthenticationError) {
+        return res
+          .status(401)
+          .send({ success: false, error: "Invalid login credentials" });
+      } else if (err instanceof NotFoundError) {
+        return res
+          .status(404)
+          .send({ success: false, error: "Username not found" });
+      } else {
+        return res
+          .status(500)
+          .send({ success: false, error: "Internal Server Error" });
+      }
     }
   }
 
@@ -223,6 +237,14 @@ class UserService {
       });
     } catch (err) {
       next(err);
+      if (err instanceof BadRequestError) {
+        return res.status(400).send({ success: false, error: err.message });
+      } else {
+        // Handle other errors with a generic error response
+        return res
+          .status(500)
+          .send({ success: false, error: "Internal Server Error" });
+      }
     }
   }
 
@@ -281,13 +303,21 @@ class UserService {
   }
 
   // Get all users
-  async users(req, res, next) {
+  async getData(req, res, next) {
     try {
       const store = new Store(req.db);
-      const users = await store.getAllUsers();
-      if (!users) {
-        throw new NotFoundError("No Data found");
+      const search = req.query.search;
+
+      let users = [];
+
+      const hasData = await store.getAll();
+
+      if (hasData.length > 0) {
+        users = await store.search(search);
+      } else {
+        users = await store.getAll();
       }
+
       return res.status(200).send({
         success: true,
         data: users,

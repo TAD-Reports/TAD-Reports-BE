@@ -51,11 +51,14 @@ class MaterialsService {
           !row["Report Date"] ||
           !row["Title of IEC Material"] ||
           !row["No. of Copies Distributed"] ||
+          !row["Name of Trainee"] ||
           !row["Region"] ||
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
+          !row["Age"] ||
           !row["Gender"] ||
+          !row["Birthdate"] ||
           !row["Category"] ||
           !row["Date Distributed"]
         ) {
@@ -69,6 +72,11 @@ class MaterialsService {
         if (row["Report Date"] && typeof row["Report Date"] === "number") {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
         }
+
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
+        }
+
         if (
           row["Date Distributed"] &&
           typeof row["Date Distributed"] === "number"

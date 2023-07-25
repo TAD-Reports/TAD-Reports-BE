@@ -53,11 +53,14 @@ class AbacaDiseaseManagementService {
           !row["Municipality"] ||
           !row["Barangay"] ||
           !row["Name of Beneficiary"] ||
+          !row["Birthdate"] ||
+          !row["Age"] ||
           !row["Gender"] ||
           !row["Category"] ||
           !row["Actual Area (ha)"] ||
           !row["Effective Area"] ||
           !row["Disease Incidence During Eradication (percentage)"] ||
+          !row["Date Monitored"] ||
           !row["Area Treated/ Eradicated"] ||
           !row["Date Eradicated"]
         ) {
@@ -70,6 +73,14 @@ class AbacaDiseaseManagementService {
         row.imported_by = body.imported_by;
         if (row["Report Date"] && typeof row["Report Date"] === "number") {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
+        }
+
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
+        }
+
+        if (row["Date Monitored"] && typeof row["Date Monitored"] === "number") {
+          row["Date Monitored"] = convertExcelDate(row["Date Monitored"]);
         }
 
         if (

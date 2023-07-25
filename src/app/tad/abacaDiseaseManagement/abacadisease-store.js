@@ -19,12 +19,15 @@ class AbacaDiseaseManagementStore {
       municipality: row["Municipality"],
       barangay: row["Barangay"],
       name_of_beneficiary: row["Name of Beneficiary"],
+      birthdate: row["Birthdate"],
+      age: row["Age"],
       gender: row["Gender"],
       category: row["Category"],
       actual_area_ha: row["Actual Area (ha)"],
       effective_area: row["Effective Area"],
       disease_incidence_during_eradication_percentage:
         row["Disease Incidence During Eradication (percentage)"],
+      date_monitored: row["Date Monitored"],
       area_treated_eradicated: row["Area Treated/ Eradicated"],
       date_eradicated: row["Date Eradicated"],
       remarks: row["Remarks"],
@@ -42,6 +45,8 @@ class AbacaDiseaseManagementStore {
       municipality: body.municipality,
       barangay: body.barangay,
       name_of_beneficiary: body.name_of_beneficiary,
+      birthdate: body.birthdate,
+      age: body.age,
       gender: body.gender,
       category: body.category,
       actual_area_ha: body.actual_area_ha,
@@ -87,6 +92,8 @@ class AbacaDiseaseManagementStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.cols.dateEradicated,
+      this.cols.dateMonitored,
+      this.cols.birthdate,
     ]);
     return convertedResults;
   }
@@ -104,6 +111,8 @@ class AbacaDiseaseManagementStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.cols.dateEradicated,
+      this.cols.dateMonitored,
+      this.cols.birthdate,
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -329,7 +338,8 @@ class AbacaDiseaseManagementStore {
     const results = await query;
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate, this.cols.dateEradicated]
+      [this.cols.reportDate, this.cols.dateEradicated, this.cols.dateMonitored,
+        this.cols.birthdate]
     );
     return convertedResults;
   }

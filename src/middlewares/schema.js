@@ -232,12 +232,15 @@ const userDao =
             table.date("report_date").notNullable();
             table.string("title_of_iec_material").notNullable();
             table.double("no_of_copies_distributed").notNullable();
+            table.string("name_of_trainee").notNullable();
             table.string("region").notNullable();
             table.string("province").notNullable();
             table.string("district").nullable();
             table.string("municipality").notNullable();
             table.string("barangay").notNullable();
+            table.integer("age").notNullable();
             table.string("gender").notNullable();
+            table.date("birthdate").notNullable();
             table.string("category").notNullable();
             table.date("date_distributed").notNullable();
             table.string("remarks").nullable();
@@ -260,6 +263,8 @@ const userDao =
             table.string("municipality").notNullable();
             table.string("barangay").notNullable();
             table.string("name_of_beneficiary").notNullable();
+            table.date("birthdate").notNullable();
+            table.integer("age").notNullable();
             table.string("gender").notNullable();
             table.string("category").notNullable();
             table.double("actual_area_ha").notNullable();
@@ -267,6 +272,7 @@ const userDao =
             table
               .double("disease_incidence_during_eradication_percentage")
               .notNullable();
+            table.date("date_monitored").notNullable();
             table.double("area_treated_eradicated").notNullable();
             table.date("date_eradicated").notNullable();
             table.string("remarks").nullable();

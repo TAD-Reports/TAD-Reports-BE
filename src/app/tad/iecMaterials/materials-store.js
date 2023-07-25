@@ -14,12 +14,15 @@ class MaterialsStore {
       report_date: row["Report Date"],
       title_of_iec_material: row["Title of IEC Material"],
       no_of_copies_distributed: row["No. of Copies Distributed"],
+      name_of_trainee: row["Name of Trainee"],
       region: row["Region"],
       province: row["Province"],
       district: row["District"],
       municipality: row["Municipality"],
       barangay: row["Barangay"],
+      age: row["Age"],
       gender: row["Gender"],
+      birthdate: row["Birthdate"],
       category: row["Category"],
       date_distributed: row["Date Distributed"],
       imported_by: row.imported_by, // Assign the import_by field from the row object
@@ -32,12 +35,15 @@ class MaterialsStore {
       report_date: body.report_date,
       title_of_iec_material: body.title_of_iec_material,
       no_of_copies_distributed: body.no_of_copies_distributed,
+      name_of_trainee: body.name_of_trainee,
       region: body.region,
       province: body.province,
       district: body.district,
       municipality: body.municipality,
       barangay: body.barangay,
+      age: body.age,
       gender: body.gender,
+      birthdate: body.birthdate,
       category: body.category,
       date_distributed: body.date_distributed,
     });
@@ -77,6 +83,7 @@ class MaterialsStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.cols.dateDistributed,
+      this.cols.birthdate
     ]);
     return convertedResults;
   }
@@ -94,6 +101,7 @@ class MaterialsStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.cols.dateDistributed,
+      this.cols.birthdate
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -379,7 +387,7 @@ class MaterialsStore {
     const results = await query; // Execute the query and retrieve the results
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate, this.cols.dateDistributed]
+      [this.cols.reportDate, this.cols.dateDistributed, this.cols.birthdate]
     );
     return convertedResults;
   }

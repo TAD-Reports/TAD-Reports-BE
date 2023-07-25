@@ -51,7 +51,7 @@ class AbacaDiseaseManagementStore {
       category: body.category,
       actual_area_ha: body.actual_area_ha,
       effective_area: body.effective_area,
-      disease_incidence_during_eradication:
+      disease_incidence_during_eradication_percentage:
         body.disease_incidence_during_eradication_percentage,
       area_treated_eradicated: body.area_treated_eradicated,
       date_eradicated: body.date_eradicated,

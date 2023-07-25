@@ -147,7 +147,7 @@ class TrainingStore {
           `CONCAT(MONTHNAME(report_date), YEAR(report_date)) AS month_year`
         )
       )
-      .sum(`${this.cols.name_of_trainee} AS total_participants`)
+      .count(`${this.cols.name_of_trainee} AS total_participants`)
       .groupBy(
         this.cols.gender,
         this.db.raw(`CONCAT(MONTHNAME(report_date), YEAR(report_date))`),

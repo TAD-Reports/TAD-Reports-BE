@@ -421,8 +421,8 @@ const userDao =
             username: "sa",
             password:
               "$2b$10$aoZz7ydLZrckRUJivZApvOKw5g8JYKMl4blpDlGib48Io651w166G",
-            firstname: "Mark",
-            lastname: "Salem",
+            firstname: "PhilFIDA",
+            lastname: "PhilFIDA",
             region: "all",
             role: "superadmin",
           },
@@ -430,8 +430,8 @@ const userDao =
             username: "hr",
             password:
               "$2b$10$ZEvsCQvjjbfkD.Zmwac/AegakD9cDVknJPTK5onPl/STsXtaKxYFG",
-            firstname: "Tony",
-            lastname: "Start",
+            firstname: "PhilFIDA",
+            lastname: "PhilFIDA",
             region: "all",
             role: "hradmin",
           },
@@ -439,8 +439,8 @@ const userDao =
             username: "pictu",
             password:
               "$2b$10$Kwfe69CG8eom.ueyw4DM3.1SxWwJsY8k7dpE53rhL8Txpq3hDprye",
-            firstname: "Pictu",
-            lastname: "Pictu",
+            firstname: "PhilFIDA",
+            lastname: "PhilFIDA",
             region: "all",
             role: "pictu",
           },

@@ -168,7 +168,7 @@ class MaterialsService {
       if (!id) {
         throw new NotFoundError("ID Not Found");
       }
-      const result = store.update(uuid, body);
+      const result = await store.update(uuid, body);
       if (result === 0) {
         throw new NotFoundError("Data Not Found");
       }

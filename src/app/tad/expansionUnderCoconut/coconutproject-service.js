@@ -69,6 +69,11 @@ class CoconutService {
         if (row["Report Date"] && typeof row["Report Date"] === "number") {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
         }
+
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
+        }
+
         const regionValue = row["Region"];
         if (!regionValue.startsWith("Regional Office ")) {
           throw new BadRequestError(

@@ -295,6 +295,8 @@ const userDao =
             table.string("municipality").notNullable();
             table.string("barangay").notNullable();
             table.string("name_of_beneficiary").notNullable();
+            table.date("birthdate").notNullable();
+            table.integer("age").notNullable();
             table.string("gender").notNullable();
             table.string("category").notNullable();
             table.double("area_planted_has").notNullable();

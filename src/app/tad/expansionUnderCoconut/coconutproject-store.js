@@ -19,6 +19,8 @@ class CoconutStore {
       municipality: row["Municipality"],
       barangay: row["Barangay"],
       name_of_beneficiary: row["Name of Beneficiary"],
+      birthdate: row["Birthdate"],
+      age: row["Age"],
       gender: row["Gender"],
       category: row["Category"],
       area_planted_has: row["Area Planted (has)"],
@@ -40,6 +42,8 @@ class CoconutStore {
       municipality: body.municipality,
       barangay: body.barangay,
       name_of_beneficiary: body.name_of_beneficiary,
+      birthdate: body.birthdate,
+      age: body.age,
       gender: body.gender,
       category: body.category,
       area_planted_has: body.area_planted_has,
@@ -83,6 +87,7 @@ class CoconutStore {
       .where(this.cols.id, uuid);
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
+      this.cols.birthdate
     ]);
     return convertedResults;
   }
@@ -99,6 +104,7 @@ class CoconutStore {
     }
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
+      this.cols.birthdate
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -324,7 +330,7 @@ class CoconutStore {
     const results = await query;
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate]
+      [this.cols.reportDate, this.cols.birthdate]
     );
     return convertedResults;
   }

@@ -16,5 +16,6 @@ module.exports = {
     birthdate: 'birthdate',
     category: 'category',
     dateDistributed: 'date_distributed',
+    remarks: 'remarks'
   },
 };

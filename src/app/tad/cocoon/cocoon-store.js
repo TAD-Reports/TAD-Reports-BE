@@ -27,6 +27,7 @@ class CocoonStore {
       date_of_rearing: row["Date of Rearing"],
       total_production_in_kg: row["Total Production in Kg"],
       value_in_php: row["Value In Php"],
+      remarks: row["Remarks"],
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
@@ -50,6 +51,7 @@ class CocoonStore {
       date_of_rearing: body.date_of_rearing,
       total_production_in_kg: body.total_production_in_kg,
       value_in_php: body.value_in_php,
+      remarks: body.remarks
     });
 
     // Fetch the updated rows

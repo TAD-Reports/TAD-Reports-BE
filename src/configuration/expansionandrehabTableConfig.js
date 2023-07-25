@@ -17,5 +17,6 @@ module.exports = {
     areaPlantedHas: 'area_planted_has',
     variety: 'variety',
     sourceOfPm: 'source_of_pm',
+    remarks: 'remarks'
   },
 };

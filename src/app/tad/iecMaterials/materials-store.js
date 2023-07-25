@@ -25,6 +25,7 @@ class MaterialsStore {
       birthdate: row["Birthdate"],
       category: row["Category"],
       date_distributed: row["Date Distributed"],
+      remarks: row["Remarks"],
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
@@ -46,6 +47,7 @@ class MaterialsStore {
       birthdate: body.birthdate,
       category: body.category,
       date_distributed: body.date_distributed,
+      remarks: body.remarks
     });
 
     // Fetch the updated rows

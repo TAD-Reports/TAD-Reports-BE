@@ -26,6 +26,7 @@ class ExpansionStore {
       area_planted_has: row["Area Planted (has)"],
       variety: row["Variety"],
       source_of_pm: row["Source of PM"],
+      remarks: row["Remarks"],
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
   }
@@ -48,6 +49,7 @@ class ExpansionStore {
       area_planted_has: body.area_planted_has,
       variety: body.variety,
       source_of_pm: body.source_of_pm,
+      remarks: body.remarks
     });
 
     const updatedRows = await this.db(this.table)

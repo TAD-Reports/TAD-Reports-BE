@@ -12,18 +12,20 @@ class TrainingStore {
   async add(row) {
     return await this.db(this.table).insert({
       report_date: row["Report Date"],
+      name_of_trainee: row["Name of Trainee"],
       conduct_of_training: row["Conduct of Training"],
       region: row["Region"],
       province: row["Province"],
       district: row["District"],
       municipality: row["Municipality"],
       barangay: row["Barangay"],
+      birthdate: row["Birthdate"],
+      age: row["Age"],
       gender: row["Gender"],
       age_group: row["Age Group"],
       venue: row["Venue"],
       start_date: row["Start Date"],
       end_date: row["End Date"],
-      participants: row["Participants"],
       remarks: row["Remarks"],
       imported_by: row.imported_by, // Assign the import_by field from the row object
     });
@@ -33,18 +35,20 @@ class TrainingStore {
     // Perform the update operation
     await this.db(this.table).where(this.cols.id, uuid).update({
       report_date: body.report_date,
+      name_of_trainee: body.name_of_trainee,
       conduct_of_training: body.conduct_of_training,
       region: body.region,
       province: body.province,
       district: body.district,
       municipality: body.municipality,
       barangay: body.barangay,
+      birthdate: body.birthdate,
+      age: body.age,
       gender: body.gender,
       age_group: body.age_group,
       venue: body.venue,
       start_date: body.start_date,
       end_date: body.end_date,
-      participants: body.participants,
       remarks: body.remarks,
     });
 
@@ -83,6 +87,7 @@ class TrainingStore {
       this.cols.reportDate,
       this.cols.startDate,
       this.endDate,
+      this.cols.birthdate
     ]);
     return convertedResults;
   }
@@ -101,6 +106,7 @@ class TrainingStore {
       this.cols.reportDate,
       this.cols.startDate,
       this.endDate,
+      this.cols.birthdate
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -323,7 +329,7 @@ class TrainingStore {
     const results = await query; // Execute the query and retrieve the results
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate, this.cols.startDate, this.cols.endDate]
+      [this.cols.reportDate, this.cols.startDate, this.cols.endDate, this.cols.birthdate]
     );
     return convertedResults;
   }

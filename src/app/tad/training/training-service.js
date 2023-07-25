@@ -49,11 +49,14 @@ class TrainingService {
         // Check if any required fields are empty
         if (
           !row["Report Date"] ||
+          !row["Name of Trainee"] ||
           !row["Conduct of Training"] ||
           !row["Region"] ||
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
+          !row["Birthdate"] ||
+          !row["Age"] ||
           !row["Gender"] ||
           !row["Age Group"] ||
           !row["Venue"] ||
@@ -78,6 +81,11 @@ class TrainingService {
         if (row["End Date"] && typeof row["End Date"] === "number") {
           row["End Date"] = convertExcelDate(row["End Date"]);
         }
+
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
+        }
+
         const regionValue = row["Region"];
         if (!regionValue.startsWith("Regional Office ")) {
           throw new BadRequestError(

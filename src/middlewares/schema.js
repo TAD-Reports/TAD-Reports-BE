@@ -203,18 +203,20 @@ const userDao =
           .createTable("training", (table) => {
             table.increments("uuid").primary();
             table.date("report_date").notNullable();
+            table.string("name_of_trainee").notNullable();
             table.string("conduct_of_training").notNullable();
             table.string("region").notNullable();
             table.string("province").notNullable();
             table.string("district").nullable();
             table.string("municipality").notNullable();
             table.string("barangay").notNullable();
+            table.date("birthdate").notNullable();
+            table.integer("age").notNullable();
             table.string("gender").notNullable();
             table.string("age_group").notNullable();
             table.string("venue").notNullable();
             table.date("start_date").notNullable();
             table.date("end_date").notNullable();
-            table.double("participants").notNullable();
             table.string("remarks").nullable();
             table.timestamps(true, true);
             table

@@ -53,6 +53,8 @@ class CocoonService {
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
+          !row["Age"] ||
+          !row["Birthdate"] ||
           !row["Gender"] ||
           !row["Category"] ||
           !row["No. of Box Reared"] ||
@@ -70,6 +72,11 @@ class CocoonService {
         if (row["Report Date"] && typeof row["Report Date"] === "number") {
           row["Report Date"] = convertExcelDate(row["Report Date"]);
         }
+
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
+        }
+
         if (
           row["Date of Rearing"] &&
           typeof row["Date of Rearing"] === "number"

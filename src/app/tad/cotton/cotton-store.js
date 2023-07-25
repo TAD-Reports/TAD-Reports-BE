@@ -18,6 +18,8 @@ class CottonStore {
       district: row["District"],
       municipality: row["Municipality"],
       barangay: row["Barangay"],
+      birthdate: row["Birthdate"],
+      age: row["Age"],
       gender: row["Gender"],
       category: row["Category"],
       quantity_of_cotton_seeds_given: row["Quantity of Cotton Seeds Given"],
@@ -40,6 +42,8 @@ class CottonStore {
       district: body.district,
       municipality: body.municipality,
       barangay: body.barangay,
+      birthdate: body.birthdate,
+      age: body.age,
       gender: body.gender,
       category: body.category,
       quantity_of_cotton_seeds_given: body.quantity_of_cotton_seeds_given,
@@ -83,6 +87,7 @@ class CottonStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.cols.datePlanted,
+      this.cols.birthdate
     ]);
     return convertedResults;
   }
@@ -100,6 +105,7 @@ class CottonStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.cols.datePlanted,
+      this.cols.birthdate
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -325,7 +331,7 @@ class CottonStore {
     const results = await query; // Execute the query and retrieve the results
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate, this.cols.datePlanted]
+      [this.cols.reportDate, this.cols.datePlanted, this.cols.birthdate]
     );
     return convertedResults;
   }

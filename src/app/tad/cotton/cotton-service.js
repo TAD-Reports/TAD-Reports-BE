@@ -52,6 +52,8 @@ class CottonService {
           !row["Province"] ||
           !row["Municipality"] ||
           !row["Barangay"] ||
+          !row["Birthdate"] ||
+          !row["Age"] ||
           !row["Gender"] ||
           !row["Category"] ||
           !row["Quantity of Cotton Seeds Given"] ||
@@ -73,6 +75,10 @@ class CottonService {
         if (row["Date Planted"] && typeof row["Date Planted"] === "number") {
           row["Date Planted"] = convertExcelDate(row["Date Planted"]);
         }
+        if (row["Birthdate"] && typeof row["Birthdate"] === "number") {
+          row["Birthdate"] = convertExcelDate(row["Birthdate"]);
+        }
+
         const regionValue = row["Region"];
         if (!regionValue.startsWith("Regional Office ")) {
           throw new BadRequestError(

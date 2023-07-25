@@ -152,6 +152,8 @@ const userDao =
             table.string("district").nullable();
             table.string("municipality").notNullable();
             table.string("barangay").notNullable();
+            table.date("birthdate").notNullable();
+            table.integer("age").notNullable();
             table.string("gender").notNullable();
             table.string("category").notNullable();
             table.double("quantity_of_cotton_seeds_given").notNullable();
@@ -180,6 +182,8 @@ const userDao =
             table.string("district").nullable();
             table.string("municipality").notNullable();
             table.string("barangay").notNullable();
+            table.integer("age").notNullable();
+            table.date("birthdate").notNullable();
             table.string("gender").notNullable();
             table.string("category").notNullable();
             table.double("no_of_box_reared").notNullable();

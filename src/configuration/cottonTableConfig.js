@@ -9,6 +9,8 @@ module.exports = {
     district: 'district',
     municipality: 'municipality',
     barangay: 'barangay',
+    birthdate: 'birthdate',
+    age: 'age',
     gender: 'gender',
     category: 'category',
     quantityOfCottonSeedsGiven: 'quantity_of_cotton_seeds_given',

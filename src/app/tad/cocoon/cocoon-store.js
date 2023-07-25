@@ -19,6 +19,8 @@ class CocoonStore {
       district: row["District"],
       municipality: row["Municipality"],
       barangay: row["Barangay"],
+      age: row["Age"],
+      birthdate: row["Birthdate"],
       gender: row["Gender"],
       category: row["Category"],
       no_of_box_reared: row["No. of Box Reared"],
@@ -40,6 +42,8 @@ class CocoonStore {
       district: body.district,
       municipality: body.municipality,
       barangay: body.barangay,
+      age: body.age,
+      birthdate: body.birthdate,
       gender: body.gender,
       category: body.category,
       no_of_box_reared: body.no_of_box_reared,
@@ -83,6 +87,7 @@ class CocoonStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.dateOfRearing,
+      this.cols.birthdate
     ]);
     return convertedResults;
   }
@@ -100,6 +105,7 @@ class CocoonStore {
     const convertedResults = convertDatesToTimezone(results, [
       this.cols.reportDate,
       this.dateOfRearing,
+      this.cols.birthdate
     ]);
     const columnNames = await this.db(this.table)
       .columnInfo()
@@ -391,7 +397,7 @@ class CocoonStore {
     const results = await query; // Execute the query and retrieve the results
     const convertedResults = convertDatesToTimezone(
       results.map((row) => row),
-      [this.cols.reportDate, this.cols.dateOfRearing]
+      [this.cols.reportDate, this.cols.dateOfRearing, this.cols.birthdate]
     );
     return convertedResults;
   }

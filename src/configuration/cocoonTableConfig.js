@@ -9,6 +9,8 @@ module.exports = {
     district: 'district',
     municipality: 'municipality',
     barangay: 'barangay',
+    age: 'age',
+    birthdate: 'birthdate',
     gender: 'gender',
     category: 'category',
     noOfBoxReared: 'no_of_box_reared',

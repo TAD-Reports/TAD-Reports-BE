@@ -17,6 +17,7 @@ router.use(require("./tad/iecMaterials/_rest"));
 router.use(require("./tad/nursery/_rest"));
 router.use(require("./tad/pmSurvived/_rest"));
 router.use(require("./tad/training/_rest"));
+router.use(require("./tad/ndrrm/_rest"));
 
 // JOB APPLICATION
 router.use(require("./jobApplication/jobappform/_rest"));

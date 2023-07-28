@@ -1,0 +1,25 @@
+module.exports = {
+    tableName: 'ndrrm',
+    columnNames: {
+      id: 'uuid',
+      reportDate: 'report_date',
+      calamity: 'calamity',
+      region: 'region',
+      province: 'province',
+      municipality: 'municipality',
+      barangay: 'barangay',
+      name_of_farmer: 'name_of_farmer',
+      crops: 'crops',
+      stage_of_crop_development: 'stage_of_crop_development',
+      standing_crops_area_has: 'standing_crops_area_has',
+      extent_of_damage: 'extent_of_damage',
+      area_affected_has: 'area_affected_has',
+      yield_per_hectare_mt_has_before: 'yield_per_hectare_mt_has_before',
+      yield_per_hectare_mt_has_after: 'yield_per_hectare_mt_has_after',
+      yield_loss: 'yield_loss_percentage',
+      volume_loss: 'volume_loss_mt',
+      avg_price_kg_of_fiber: 'avg_price_kg_of_fiber',
+      value_loss_php: 'value_loss_php',
+      remarks: 'remarks'
+    },
+  };

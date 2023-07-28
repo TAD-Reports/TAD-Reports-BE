@@ -312,6 +312,36 @@ const userDao =
               .inTable("users")
               .onDelete("RESTRICT");
           })
+          .createTable("ndrrm", (table) => {
+            table.increments("uuid").primary();
+            table.date("report_date").notNullable();
+            table.string("calamity").notNullable();
+            table.string("region").notNullable();
+            table.string("province").notNullable();
+            table.string("municipality").notNullable();
+            table.string("barangay").notNullable();
+            table.string("name_of_farmer").notNullable();
+            table.string("crops").notNullable();
+            table.string("stage_of_crop_development").notNullable();
+            table.double("standing_crops_area_has").notNullable();
+            table.string("extent_of_damage").notNullable();
+            table.double("area_affected_has").notNullable();
+            table.double("yield_per_hectare_mt_has_before").notNullable();
+            table.double("yield_per_hectare_mt_has_after").notNullable();
+            table.string("yield_loss_percentage").notNullable();
+            table.double("volume_loss_mt").notNullable();
+            table.double("avg_price_kg_of_fiber").notNullable();
+            table.double("value_loss_php").notNullable();
+            table.string("remarks").nullable();
+            table.timestamps(true, true);
+            table
+              .integer("imported_by")
+              .unsigned()
+              .notNullable()
+              .references("uuid")
+              .inTable("users")
+              .onDelete("RESTRICT");
+          })
           .createTable("jobpositions", (table) => {
             table.increments("uuid").primary();
             table.string("position_title").notNullable();
